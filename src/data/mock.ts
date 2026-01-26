@@ -130,4 +130,157 @@ export const mockTransactions: Transaction[] = [
         notes: "Deposit",
         created_at: "2024-02-05T14:30:00Z"
     }
+    ,
+    {
+        id: "tx_2",
+        amount: 500,
+        tenant_id: "tenant_2",
+        room_id: "room_1",
+        property_id: "prop_1",
+        notes: "Rent for January",
+        created_at: "2024-01-26T11:00:00Z"
+    },
+    {
+        id: "tx_3",
+        amount: 1200,
+        tenant_id: "tenant_3",
+        room_id: "room_3",
+        property_id: "prop_2",
+        notes: "Deposit",
+        created_at: "2024-02-05T14:30:00Z"
+    }
+    ,
+    {
+        id: "tx_2",
+        amount: 500,
+        tenant_id: "tenant_2",
+        room_id: "room_1",
+        property_id: "prop_1",
+        notes: "Rent for January",
+        created_at: "2024-01-26T11:00:00Z"
+    },
+    {
+        id: "tx_3",
+        amount: 1200,
+        tenant_id: "tenant_3",
+        room_id: "room_3",
+        property_id: "prop_2",
+        notes: "Deposit",
+        created_at: "2024-02-05T14:30:00Z"
+    }
+    ,
+    {
+        id: "tx_2",
+        amount: 500,
+        tenant_id: "tenant_2",
+        room_id: "room_1",
+        property_id: "prop_1",
+        notes: "Rent for January",
+        created_at: "2024-01-26T11:00:00Z"
+    },
+    {
+        id: "tx_3",
+        amount: 1200,
+        tenant_id: "tenant_3",
+        room_id: "room_3",
+        property_id: "prop_2",
+        notes: "Deposit",
+        created_at: "2024-02-05T14:30:00Z"
+    }
+    ,
+    {
+        id: "tx_2",
+        amount: 500,
+        tenant_id: "tenant_2",
+        room_id: "room_1",
+        property_id: "prop_1",
+        notes: "Rent for January",
+        created_at: "2024-01-26T11:00:00Z"
+    },
+    {
+        id: "tx_3",
+        amount: 1200,
+        tenant_id: "tenant_3",
+        room_id: "room_3",
+        property_id: "prop_2",
+        notes: "Deposit",
+        created_at: "2024-02-05T14:30:00Z"
+    }
+    ,
+    {
+        id: "tx_2",
+        amount: 600,
+        tenant_id: "tenant_2",
+        room_id: "room_1",
+        property_id: "prop_1",
+        notes: "Rent for January",
+        created_at: "2024-01-26T11:00:00Z"
+    },
+    {
+        id: "tx_3",
+        amount: 1200,
+        tenant_id: "tenant_3",
+        room_id: "room_3",
+        property_id: "prop_2",
+        notes: "Deposit",
+        created_at: "2024-02-05T14:30:00Z"
+    }
+    ,
+    {
+        id: "tx_2",
+        amount: 200,
+        tenant_id: "tenant_2",
+        room_id: "room_1",
+        property_id: "prop_1",
+        notes: "Rent for January",
+        created_at: "2024-01-26T11:00:00Z"
+    },
+    {
+        id: "tx_3",
+        amount: 1200,
+        tenant_id: "tenant_3",
+        room_id: "room_3",
+        property_id: "prop_2",
+        notes: "Deposit",
+        created_at: "2024-02-05T14:30:00Z"
+    }
+    ,
+    {
+        id: "tx_2",
+        amount: 700,
+        tenant_id: "tenant_2",
+        room_id: "room_1",
+        property_id: "prop_1",
+        notes: "Rent for January",
+        created_at: "2024-01-26T11:00:00Z"
+    },
+    {
+        id: "tx_3",
+        amount: 1200,
+        tenant_id: "tenant_3",
+        room_id: "room_3",
+        property_id: "prop_2",
+        notes: "Deposit",
+        created_at: "2024-02-05T14:30:00Z"
+    }
+    ,
+    {
+        id: "tx_2",
+        amount: 400,
+        tenant_id: "tenant_2",
+        room_id: "room_1",
+        property_id: "prop_1",
+        notes: "Rent for January",
+        created_at: "2024-01-26T11:00:00Z"
+    },
+    {
+        id: "tx_3",
+        amount: 1200,
+        tenant_id: "tenant_3",
+        room_id: "room_3",
+        property_id: "prop_2",
+        notes: "Deposit",
+        created_at: "2024-02-05T14:30:00Z"
+    }
+    
 ];

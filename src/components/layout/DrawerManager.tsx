@@ -1,6 +1,7 @@
 import { useAppStore } from "../../lib/store";
 import { X } from "lucide-react";
 import { Button } from "../ui/button";
+import type { Transaction } from "../../types";
 
 // Placeholder drawer content components
 function RoomDrawerContent({ data }: { data: any }) {
@@ -51,6 +52,35 @@ function PaymentDrawerContent({ data }: { data: any }) {
     )
 }
 
+function PaymentHistoryDrawerContent({ data }: { data: { tenantId: string, payments: Transaction[] } }) {
+    if (!data || !data.payments) return null;
+
+    return (
+        <div className="space-y-6">
+            <div>
+                <h3 className="text-lg font-bold">Payment History</h3>
+                <p className="text-sm text-gray-500">Full Record ({data.payments.length})</p>
+            </div>
+
+            <div className="space-y-2">
+                {data.payments.map((p) => (
+                    <div key={p.id} className="flex justify-between items-center p-3 bg-gray-50 rounded border border-gray-100">
+                        <div>
+                            <p className="font-semibold text-sm">${p.amount}</p>
+                            <p className="text-xs text-gray-500">{new Date(p.created_at).toLocaleDateString()}</p>
+                        </div>
+                        <div className="text-xs text-gray-400 font-mono">
+                            {p.id}
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            <Button className="w-full">Export CSV</Button>
+        </div>
+    )
+}
+
 export function DrawerManager() {
     const { activeDrawer, closeDrawer } = useAppStore();
 
@@ -75,6 +105,7 @@ export function DrawerManager() {
                             {activeDrawer.type === 'ROOM' && 'Room Details'}
                             {activeDrawer.type === 'TENANT' && 'Tenant Profile'}
                             {activeDrawer.type === 'PAYMENT' && 'Payment Info'}
+                            {activeDrawer.type === 'PAYMENT_HISTORY' && 'History'}
                         </h2>
                         <Button variant="ghost" size="icon" onClick={closeDrawer}>
                             <X className="size-5" />
@@ -86,6 +117,7 @@ export function DrawerManager() {
                         {activeDrawer.type === 'ROOM' && <RoomDrawerContent data={activeDrawer.dataOrId} />}
                         {activeDrawer.type === 'TENANT' && <TenantDrawerContent data={activeDrawer.dataOrId} />}
                         {activeDrawer.type === 'PAYMENT' && <PaymentDrawerContent data={activeDrawer.dataOrId} />}
+                        {activeDrawer.type === 'PAYMENT_HISTORY' && <PaymentHistoryDrawerContent data={activeDrawer.dataOrId} />}
                     </div>
 
                     {/* Footer */}

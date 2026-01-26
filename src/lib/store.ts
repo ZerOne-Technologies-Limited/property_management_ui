@@ -19,12 +19,12 @@ interface UIState {
     selectedPropertyId: string | null;
     isSidebarOpen: boolean;
     activeDrawer: {
-        type: 'ROOM' | 'TENANT' | 'PAYMENT' | 'NONE';
+        type: 'ROOM' | 'TENANT' | 'PAYMENT' | 'PAYMENT_HISTORY' | 'NONE';
         dataOrId: any;
     };
     setSelectedPropertyId: (id: string) => void;
     toggleSidebar: () => void;
-    openDrawer: (type: 'ROOM' | 'TENANT' | 'PAYMENT', dataOrId: any) => void;
+    openDrawer: (type: 'ROOM' | 'TENANT' | 'PAYMENT' | 'PAYMENT_HISTORY', dataOrId: any) => void;
     closeDrawer: () => void;
 }
 
