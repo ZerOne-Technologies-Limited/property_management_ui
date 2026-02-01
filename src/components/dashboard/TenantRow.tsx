@@ -1,19 +1,27 @@
 import type { Tenant } from "../../types";
 import { PaymentTimeline } from "./PaymentTimeline";
+import { AddPaymentDialog } from "./AddPaymentDialog";
 import { Button } from "../ui/button";
 import { User, MessageCircle } from "lucide-react";
-import { mockTransactions } from "../../data/mock";
 import { useAppStore } from "../../lib/store";
+import { useTransactions } from "../../hooks/useTransactions";
+import { Loader2 } from "lucide-react";
 
 interface TenantRowProps {
     tenant: Tenant;
+    // transactions prop removed
 }
 
 export function TenantRow({ tenant }: TenantRowProps) {
     const { openDrawer } = useAppStore();
 
-    // Filter mock payments for this tenant
-    const payments = mockTransactions.filter(t => t.tenant_id === tenant.id);
+    // Fetch payments for this tenant specifically
+    // We pass tenant.room_id (must be string) and tenant.id
+    const { transactions: payments, loading } = useTransactions(
+        tenant.property_id,
+        tenant.room_id || undefined,
+        tenant.id
+    );
 
     return (
         <div
@@ -40,11 +48,20 @@ export function TenantRow({ tenant }: TenantRowProps) {
 
                 {/* 2. Inline Payment Timeline (Cols 5-9) */}
                 <div className="col-span-5 flex justify-start items-center">
-                    <PaymentTimeline payments={payments} tenantId={tenant.id} />
+                    {loading ? (
+                        <Loader2 className="size-4 animate-spin text-gray-400" />
+                    ) : (
+                        <PaymentTimeline payments={payments} tenantId={tenant.id} />
+                    )}
                 </div>
 
                 {/* 3. Actions (Cols 10-12) */}
                 <div className="col-span-3 text-right flex justify-end gap-2 items-center">
+                    <AddPaymentDialog
+                        tenantId={tenant.id}
+                        roomId={tenant.room_id || 0}
+                        propertyId={tenant.property_id}
+                    />
                     <Button
                         variant="ghost"
                         size="sm"

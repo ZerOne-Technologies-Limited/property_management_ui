@@ -1,37 +1,56 @@
 import { RoomRow } from "./RoomRow";
-import { mockRooms } from "../../data/mock";
 import { useAppStore } from "../../lib/store";
+import { useRooms } from "../../hooks/useRooms";
+// import { useTenants } from "../../hooks/useTenants";
+// import { useTransactions } from "../../hooks/useTransactions";
+
+import { AddRoomDialog } from "./AddRoomDialog";
 
 export function HierarchyGrid() {
     const { selectedPropertyId } = useAppStore();
 
-    // Filter rooms by selected property
-    // If no property selected, show all (or first one)
-    const filteredRooms = selectedPropertyId
-        ? mockRooms.filter(r => r.property_id === selectedPropertyId)
-        : mockRooms; // Or just empty initally
+    // Fetch data using hooks
+    // If no property selected, we might want to wait or show nothing, 
+    // but the hooks handle empty/undefined propertyId gracefully (returning empty or all depending on API)
+    // Based on axios implementation: fetchRooms returns [] if no ID. fetchTenants/Transactions return all if no ID.
+    const { rooms, loading: loadingRooms } = useRooms(selectedPropertyId || "");
+    // const { tenants, loading: loadingTenants } = useTenants(selectedPropertyId || undefined);
+    // const { transactions, loading: loadingTransactions } = useTransactions(selectedPropertyId || undefined);
+
+    const isLoading = loadingRooms;
+
+    if (isLoading) {
+        return <div className="p-8 text-center text-gray-500">Loading data...</div>;
+    }
 
     return (
-        <div className="flex flex-col">
-            {/* Header Row */}
-            <div className="grid grid-cols-12 gap-4 border-b border-gray-200 bg-gray-50 px-4 py-3 text-xs font-semibold uppercase tracking-wider text-gray-500">
+        <div className="flex flex-col h-full">
+            <div className="flex justify-end px-4 py-3">
+                <AddRoomDialog />
+            </div>
+
+            {/* Header Row - Sticky */}
+            <div className="grid grid-cols-8 gap-4 border-b border-gray-200 bg-gray-50 px-4 py-3 text-xs font-semibold uppercase tracking-wider text-gray-500">
                 <div className="col-span-3 pl-8">Name</div>
                 <div className="col-span-2">Capacity</div>
                 <div className="col-span-2">Status</div>
-                <div className="col-span-2">Revenue</div>
-                <div className="col-span-2">Balance</div>
-                <div className="col-span-1">Action</div>
+                {/* <div className="col-span-2">Revenue</div> */}
+                {/* <div className="col-span-2">Balance</div> */}
+                <div className="col-span-1 text-right">Action</div>
             </div>
 
-            {/* Rows */}
-            <div className="flex flex-col">
-                {filteredRooms.length > 0 ? (
-                    filteredRooms.map(room => (
-                        <RoomRow key={room.id} room={room} />
+            {/* Rows - Scrollable */}
+            <div className="flex flex-col overflow-y-auto flex-1">
+                {rooms.length > 0 ? (
+                    rooms.map(room => (
+                        <RoomRow
+                            key={room.id}
+                            room={room}
+                        />
                     ))
                 ) : (
                     <div className="p-8 text-center text-gray-500">
-                        No rooms found. Select a property.
+                        {selectedPropertyId ? "No rooms found for this property." : "Select a property to view rooms."}
                     </div>
                 )}
             </div>

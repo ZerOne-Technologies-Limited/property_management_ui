@@ -1,13 +1,30 @@
+import { useEffect } from "react";
 import { Search, Calendar } from "lucide-react";
 import { useAppStore } from "../../lib/store";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import { mockProperties } from "../../data/mock";
+import { useProperties } from "../../hooks/useProperties";
 
 export function TopBar() {
     const { selectedPropertyId, setSelectedPropertyId } = useAppStore();
+    const { properties, loading } = useProperties();
 
-    const selectedProperty = mockProperties.find(p => p.id === selectedPropertyId) || mockProperties[0];
+    const selectedProperty = properties.find(p => p.id === selectedPropertyId);
+
+    // Validate selectedPropertyId against loaded properties
+    useEffect(() => {
+        if (!loading && properties.length > 0) {
+            // If we have a selected ID but it's not in the list, or if we have no selection but have items
+            const isValid = properties.some(p => p.id === selectedPropertyId);
+            if (selectedPropertyId && !isValid) {
+                // Legacy or invalid ID found, reset to first available
+                setSelectedPropertyId(properties[0].id);
+            } else if (!selectedPropertyId) {
+                // Auto-select first if none selected
+                setSelectedPropertyId(properties[0].id);
+            }
+        }
+    }, [loading, properties, selectedPropertyId, setSelectedPropertyId]);
 
     return (
         <div className="sticky top-0 z-30 flex h-16 w-full items-center gap-4 border-b border-gray-200 bg-white px-6 shadow-sm">
@@ -16,10 +33,12 @@ export function TopBar() {
                 <label className="text-sm font-medium text-gray-500">Property:</label>
                 <select
                     className="h-9 rounded-md border border-gray-300 bg-transparent px-3 text-sm font-semibold focus:outline-blue-500"
-                    value={selectedPropertyId || selectedProperty.id}
+                    value={selectedPropertyId || (selectedProperty?.id ?? "")}
                     onChange={(e) => setSelectedPropertyId(e.target.value)}
+                    disabled={loading}
                 >
-                    {mockProperties.map(prop => (
+                    <option value="" disabled>Select Property</option>
+                    {properties.map(prop => (
                         <option key={prop.id} value={prop.id}>{prop.name}</option>
                     ))}
                 </select>

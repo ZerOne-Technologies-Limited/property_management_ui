@@ -2,7 +2,7 @@ import { createFileRoute, useRouter } from '@tanstack/react-router'
 import { useState } from 'react';
 import z from 'zod'
 import type { loginModel } from '../types/auth';
-// import { loginUser } from '../api/axios';
+import { loginUser } from '../api/axios';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -16,7 +16,7 @@ export const Route = createFileRoute('/login')({
   validateSearch: z.object({
     redirectTo: z.string().default('/'),
   }),
-  beforeLoad: async ({ search }) => {
+  beforeLoad: async ({ }) => {
     // Auth check logic
   },
 })
@@ -40,21 +40,19 @@ function RouteComponent() {
     setLoading(true);
 
     try {
-      // Use real API or Mock fallback for demo
-      // const response = await loginUser(credentials);
-
-      // MOCK LOGIN SUCCESS for demo purposes if API fails or plain demo
-      const mockResponse = { Token: "mock-jwt", ExpiresAt: new Date(Date.now() + 3600 * 1000) };
+      // Use real API
+      const response = await loginUser(credentials);
 
       console.log('Login successful');
-      login(mockResponse, "Manager");
+      login(response, "Manager");
 
       await router.invalidate();
       navigate({ to: search.redirectTo });
 
     } catch (err) {
       console.error('Login failed:', err);
-      setError("Invalid phone number or password.");
+      // More specific error handling if possible, e.g. 401
+      setError("Invalid phone number or password. Please check your credentials.");
     } finally {
       setLoading(false);
     }

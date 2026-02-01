@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import type { Transaction } from "../../types";
 import { Button } from "../ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -10,7 +10,7 @@ interface PaymentTimelineProps {
     tenantId: string;
 }
 
-export function PaymentTimeline({ payments, tenantId }: PaymentTimelineProps) {
+export function PaymentTimeline({ payments, tenantId: _tenantId }: PaymentTimelineProps) {
     const { openDrawer } = useAppStore();
     // Sort oldest to newest
     const sortedPayments = [...payments].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
@@ -19,6 +19,7 @@ export function PaymentTimeline({ payments, tenantId }: PaymentTimelineProps) {
     const ITEMS_TO_SHOW = 3;
 
     const [startIndex, setStartIndex] = useState(0);
+    const [selectedPaymentIds, setSelectedPaymentIds] = useState<Set<string>>(new Set());
 
     useEffect(() => {
         if (sortedPayments.length > ITEMS_TO_SHOW) {
@@ -38,9 +39,24 @@ export function PaymentTimeline({ payments, tenantId }: PaymentTimelineProps) {
         setStartIndex(prev => Math.min(sortedPayments.length - ITEMS_TO_SHOW, prev + 1));
     };
 
-    const handleRowClick = () => {
-        openDrawer('PAYMENT_HISTORY', { tenantId, payments: sortedPayments });
+    const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>, paymentId: string) => {
+        e.stopPropagation();
+        setSelectedPaymentIds(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(paymentId)) {
+                newSet.delete(paymentId);
+            } else {
+                newSet.add(paymentId);
+            }
+            return newSet;
+        });
     };
+
+    const selectedTotal = useMemo(() => {
+        return sortedPayments
+            .filter(p => selectedPaymentIds.has(p.id))
+            .reduce((sum, p) => sum + p.amount, 0);
+    }, [sortedPayments, selectedPaymentIds]);
 
     const visiblePayments = sortedPayments.slice(startIndex, startIndex + ITEMS_TO_SHOW);
 
@@ -57,8 +73,7 @@ export function PaymentTimeline({ payments, tenantId }: PaymentTimelineProps) {
 
     return (
         <div
-            className="flex items-center gap-1 group/timeline cursor-pointer"
-            onClick={handleRowClick}
+            className="flex items-center gap-1 group/timeline"
         >
             {/* Left Control */}
             <div className="flex-shrink-0 w-4 flex justify-center">
@@ -79,19 +94,61 @@ export function PaymentTimeline({ payments, tenantId }: PaymentTimelineProps) {
                 {visiblePayments.map((payment) => (
                     <div
                         key={payment.id}
-                        className="flex items-center gap-1 group/item"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            openDrawer('PAYMENT', payment);
-                        }}
+                        className={cn(
+                            "flex items-stretch rounded font-mono font-medium text-xs transition-colors border overflow-hidden",
+                            selectedPaymentIds.has(payment.id)
+                                ? "bg-blue-50 border-blue-400"
+                                : "bg-white border-gray-200 hover:border-blue-300"
+                        )}
                     >
+                        {/* Checkbox Column */}
                         <div
                             className={cn(
-                                "px-2 py-1 rounded font-mono font-medium text-xs transition-colors border",
-                                "bg-white border-gray-200 text-gray-700 hover:border-blue-400 hover:text-blue-600"
+                                "flex items-center justify-center px-1.5 cursor-pointer transition-colors",
+                                selectedPaymentIds.has(payment.id)
+                                    ? "bg-blue-100"
+                                    : "bg-gray-50 hover:bg-gray-100"
                             )}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                const syntheticEvent = {
+                                    stopPropagation: () => { },
+                                    target: { checked: !selectedPaymentIds.has(payment.id) }
+                                } as React.ChangeEvent<HTMLInputElement>;
+                                handleCheckboxChange(syntheticEvent, payment.id);
+                            }}
                         >
-                            {payment.amount}
+                            <div
+                                className={cn(
+                                    "w-3 h-3 rounded-sm border-2 flex items-center justify-center transition-colors",
+                                    selectedPaymentIds.has(payment.id)
+                                        ? "border-blue-600 bg-blue-600"
+                                        : "border-gray-400 bg-white"
+                                )}
+                            >
+                                {selectedPaymentIds.has(payment.id) && (
+                                    <div className="w-1.5 h-1.5 bg-white rounded-sm" />
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Payment Info Column */}
+                        <div
+                            className="flex flex-col items-center justify-center px-2 py-1 cursor-pointer"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                openDrawer('PAYMENT', payment);
+                            }}
+                        >
+                            <span className={cn(
+                                "text-[9px] uppercase leading-none font-bold",
+                                selectedPaymentIds.has(payment.id) ? "text-blue-500" : "text-gray-400"
+                            )}>
+                                {new Date(payment.created_at).toLocaleString('default', { month: 'short' }).toUpperCase()}
+                            </span>
+                            <span className={cn(
+                                selectedPaymentIds.has(payment.id) ? "text-blue-700" : "text-gray-700"
+                            )}>{payment.amount}</span>
                         </div>
                     </div>
                 ))}
@@ -110,6 +167,13 @@ export function PaymentTimeline({ payments, tenantId }: PaymentTimelineProps) {
                     </Button>
                 )}
             </div>
+
+            {/* Total Display */}
+            {selectedPaymentIds.size > 0 && (
+                <div className="ml-2 px-2 py-1 rounded bg-emerald-50 border border-emerald-300 text-emerald-700 font-mono font-bold text-xs">
+                    Total: {selectedTotal}
+                </div>
+            )}
         </div>
     );
 }

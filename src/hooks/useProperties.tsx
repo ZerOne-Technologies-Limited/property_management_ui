@@ -1,40 +1,34 @@
-import { useState, useEffect } from 'react';
-import type { Property, PropertyType } from '../types';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import type { PropertyType } from '../types';
 import { createProperty, fetchProperties } from '../api/axios';
 
 export function useProperties() {
-  const [properties, setProperties] = useState<Property[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    loadProperties();
-  }, []);
+  const { data: properties = [], isLoading: loading, error } = useQuery({
+    queryKey: ['properties'],
+    queryFn: fetchProperties,
+  });
 
-  const loadProperties = async () => {
-    try {
-      setLoading(true);
-      const data = await fetchProperties();
+  const { isPending: isCreating, mutateAsync: addProperty } = useMutation({
+    mutationFn: async ({ name, type }: { name: string; type: PropertyType }) => {
+      return createProperty({ name, type });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['properties'] });
+    },
+  });
 
-      if (error) throw error;
-      setProperties(data || []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch properties');
-    } finally {
-      setLoading(false);
-    }
+  const refetch = async () => {
+    return queryClient.invalidateQueries({ queryKey: ['properties'] });
   };
 
-  const addProperty = async (name: string, type: PropertyType) => {
-    try {
-      await createProperty({ name, type });
-
-      if (error) throw error;
-      await loadProperties();
-    } catch (err) {
-      throw new Error(err instanceof Error ? err.message : 'Failed to create property');
-    }
+  return {
+    properties,
+    loading,
+    error: error ? (error instanceof Error ? error.message : 'Failed to fetch properties') : null,
+    refetch,
+    addProperty: (name: string, type: PropertyType) => addProperty({ name, type }),
+    isCreating
   };
-
-  return { properties, loading, error, refetch: loadProperties, addProperty };
 }

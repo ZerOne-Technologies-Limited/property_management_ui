@@ -14,6 +14,21 @@ export interface CreatePropertyPayload {
   type: PropertyType;
 }
 
+export interface CreateRoomPayload {
+  RoomName: string;
+  RoomCapacity: number;
+  Area: number;
+  Notes: string;
+}
+
+export interface UpdateRoomPayload {
+  RoomName?: string;
+  RoomCapacity?: number;
+  Area?: number;
+  Notes?: string;
+}
+
+
 export interface Room {
   id: string;
   property_id: string;
@@ -32,6 +47,27 @@ export interface Tenant {
   room_id: string | null;
   property_id: string;
   created_at: string;
+}
+
+export interface RegisterTenantPayload {
+  RoomId: number;
+  FirstName: string;
+  LastName: string;
+  PhoneNumber: string;
+  Password?: string;
+}
+
+export interface UpdateTenantPayload {
+  RoomId?: number;
+  WhatsappNumber?: string;
+}
+
+
+export interface CreateTransactionPayload {
+  Amount: number;
+  RoomId: number;
+  PropertyId: number;
+  TenantId: number;
 }
 
 export interface Transaction {

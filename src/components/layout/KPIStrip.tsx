@@ -1,11 +1,11 @@
 import { Card, CardContent } from "../ui/card";
-import { Users, BedDouble, DollarSign, Wallet } from "lucide-react";
+import { Users, BedDouble } from "lucide-react";
 
 const kpiData = [
     { label: "Total Rooms", value: "24", sub: "Capacity 48", icon: BedDouble, color: "text-blue-600", bg: "bg-blue-50" },
     { label: "Occupied", value: "18", sub: "75% Full", icon: Users, color: "text-purple-600", bg: "bg-purple-50" },
-    { label: "Monthly Revenue", value: "$12,400", sub: "+8% vs last", icon: DollarSign, color: "text-green-600", bg: "bg-green-50" },
-    { label: "Outstanding", value: "$1,250", sub: "3 tenants late", icon: Wallet, color: "text-red-500", bg: "bg-red-50" },
+    // { label: "Monthly Revenue", value: "$12,400", sub: "+8% vs last", icon: DollarSign, color: "text-green-600", bg: "bg-green-50" },
+    // { label: "Outstanding", value: "$1,250", sub: "3 tenants late", icon: Wallet, color: "text-red-500", bg: "bg-red-50" },
 ];
 
 export function KPIStrip() {
