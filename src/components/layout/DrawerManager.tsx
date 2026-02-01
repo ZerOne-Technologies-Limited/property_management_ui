@@ -161,7 +161,7 @@ function RoomDrawerContent({ data }: { data: any }) {
 
 function TenantDrawerContent({ data }: { data: any }) {
     const { updateTenant, isUpdatingTenant } = useTenants();
-    const { rooms } = useRooms(data?.property_id);
+    const { rooms, loading: loadingRooms } = useRooms(data?.property_id || '');
     const { closeDrawer } = useAppStore();
     const [isEditing, setIsEditing] = useState(false);
     const [formData, setFormData] = useState({
@@ -170,6 +170,10 @@ function TenantDrawerContent({ data }: { data: any }) {
     });
 
     if (!data) return null;
+
+    console.log('Tenant drawer - property_id:', data.property_id);
+    console.log('Tenant drawer - rooms:', rooms);
+    console.log('Tenant drawer - loading rooms:', loadingRooms);
 
     const handleSave = () => {
         const payload: any = {};
@@ -218,16 +222,22 @@ function TenantDrawerContent({ data }: { data: any }) {
                 <div className="space-y-4">
                     <div className="space-y-2">
                         <Label htmlFor="room">Room</Label>
-                        <select
-                            id="room"
-                            value={formData.roomId}
-                            onChange={(e) => setFormData({ ...formData, roomId: e.target.value })}
-                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                            {rooms.map(room => (
-                                <option key={room.id} value={room.id}>{room.name}</option>
-                            ))}
-                        </select>
+                        {loadingRooms ? (
+                            <div className="text-sm text-gray-500">Loading rooms...</div>
+                        ) : rooms.length === 0 ? (
+                            <div className="text-sm text-red-600">No rooms available</div>
+                        ) : (
+                            <select
+                                id="room"
+                                value={formData.roomId}
+                                onChange={(e) => setFormData({ ...formData, roomId: e.target.value })}
+                                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                                {rooms.map(room => (
+                                    <option key={room.id} value={room.id}>{room.name}</option>
+                                ))}
+                            </select>
+                        )}
                     </div>
 
                     <div className="space-y-2">
