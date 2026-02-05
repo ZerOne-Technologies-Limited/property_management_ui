@@ -1,6 +1,6 @@
 import axios from "axios";
 import type { loginModel, LoginResponse } from "../types/auth";
-import type { CreatePropertyPayload, CreateRoomPayload, UpdateRoomPayload, RegisterTenantPayload, UpdateTenantPayload, CreateTransactionPayload, Property, Room, Tenant, Transaction } from "../types";
+import type { CreatePropertyPayload, CreateRoomPayload, UpdateRoomPayload, RegisterTenantPayload, UpdateTenantPayload, CreateTransactionPayload, Property, Room, Tenant, Transaction, TransactionFilters } from "../types";
 
 import { useAppStore } from "../lib/store";
 
@@ -198,29 +198,35 @@ export const createTransaction = async (payload: CreateTransactionPayload): Prom
   };
 }
 
-export const fetchTransactions = async (propertyId?: string, roomId?: string, tenantId?: string): Promise<Transaction[]> => {
-  // Construct URL with params
-  // Endpoint: /transactions?property_id=X or ?RoomId=Y&TenantId=Z
-  // User asked for curl: /transactions?RoomId=1&TenantId=1
-  // We should support likely property_id too if needed, or just follow the new pattern.
-  // Let's build a robust param builder.
+export const fetchTenantById = async (tenantId: number): Promise<Tenant | null> => {
+  const { data } = await api.get<any>(`/tenant?TenantId=${tenantId}`);
+  const raw = data?.Tenants?.[0];
+  if (!raw) return null;
+  return {
+    id: String(raw.TenantId || raw.id),
+    first_name: raw.FirstName || raw.first_name,
+    last_name: raw.LastName || raw.last_name,
+    whatsapp_number: raw.WhatsappNumber || raw.whatsapp_number,
+    room_id: String(raw.RoomId || raw.room_id),
+    property_id: '',
+    created_at: raw.CreatedAt || new Date().toISOString()
+  };
+}
 
-  let url = '/transactions';
+export const fetchTransactions = async (filters: TransactionFilters): Promise<Transaction[]> => {
   const params = new URLSearchParams();
 
-  if (propertyId) params.append('property_id', propertyId); // Keep existing query param style if API supports it, or adapt
-  // Based on user request: /transactions?RoomId=1&TenantId=1
-  if (roomId) params.append('RoomId', roomId);
-  if (tenantId) params.append('TenantId', tenantId);
+  if (filters.MinAmount !== undefined) params.append('MinAmount', String(filters.MinAmount));
+  if (filters.MaxAmount !== undefined) params.append('MaxAmount', String(filters.MaxAmount));
+  if (filters.FromDate) params.append('FromDate', filters.FromDate + 'T00:00:00Z');
+  if (filters.ToDate) params.append('ToDate', filters.ToDate + 'T23:59:59.999Z');
+  if (filters.PropertyId !== undefined) params.append('PropertyId', String(filters.PropertyId));
+  if (filters.RoomId !== undefined) params.append('RoomId', String(filters.RoomId));
+  if (filters.TenantId !== undefined) params.append('TenantId', String(filters.TenantId));
 
-  if (params.toString()) {
-    url += `?${params.toString()}`;
-  }
+  const { data } = await api.get<any>(`/transactions?${params.toString()}`);
 
-  const { data } = await api.get<any>(url);
-
-  // Handle "Transactions" wrapper from API (as seen in user example)
-  const rawTransactions = data?.Transactions || (Array.isArray(data) ? data : (data?.data || []));
+  const rawTransactions = data?.Transactions || (Array.isArray(data) ? data : []);
 
   return rawTransactions.map((t: any) => ({
     id: String(t.Id || t.id),

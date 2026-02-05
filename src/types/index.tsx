@@ -80,6 +80,16 @@ export interface Transaction {
   created_at: string;
 }
 
+export interface TransactionFilters {
+  MinAmount?: number;
+  MaxAmount?: number;
+  FromDate?: string;
+  ToDate?: string;
+  RoomId?: number;
+  PropertyId?: number;
+  TenantId?: number;
+}
+
 export interface UserProperty {
   id: string;
   user_id: string;

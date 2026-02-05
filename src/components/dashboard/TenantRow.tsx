@@ -15,13 +15,11 @@ interface TenantRowProps {
 export function TenantRow({ tenant }: TenantRowProps) {
     const { openDrawer } = useAppStore();
 
-    // Fetch payments for this tenant specifically
-    // We pass tenant.room_id (must be string) and tenant.id
-    const { transactions: payments, loading } = useTransactions(
-        tenant.property_id,
-        tenant.room_id || undefined,
-        tenant.id
-    );
+    const { transactions: payments, loading } = useTransactions({
+        PropertyId: Number(tenant.property_id),
+        RoomId: tenant.room_id ? Number(tenant.room_id) : undefined,
+        TenantId: Number(tenant.id),
+    });
 
     return (
         <div

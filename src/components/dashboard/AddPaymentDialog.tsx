@@ -21,7 +21,7 @@ interface AddPaymentDialogProps {
 }
 
 export function AddPaymentDialog({ tenantId, roomId, propertyId }: AddPaymentDialogProps) {
-    const { addTransaction, isAddingTransaction } = useTransactions(String(propertyId));
+    const { addTransaction, isAddingTransaction } = useTransactions({ PropertyId: Number(propertyId) });
     const [open, setOpen] = useState(false);
     const [amount, setAmount] = useState<number | string>("");
 

@@ -353,7 +353,7 @@ export function DrawerManager() {
                     <div className="border-t border-gray-100 bg-gray-50 px-6 py-4">
                         <div className="flex justify-end gap-3">
                             <Button variant="outline" onClick={closeDrawer}>Close</Button>
-                            <Button>Primary Action</Button>
+                            {/* <Button>Primary Action</Button> */}
                         </div>
                     </div>
                 </div>
