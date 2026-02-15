@@ -7,7 +7,7 @@ import { useRooms } from "../../hooks/useRooms";
 import { AddRoomDialog } from "./AddRoomDialog";
 
 export function HierarchyGrid() {
-    const { selectedPropertyId } = useAppStore();
+    const selectedPropertyId = useAppStore(state => state.selectedPropertyId);
 
     // Fetch data using hooks
     // If no property selected, we might want to wait or show nothing, 
@@ -20,7 +20,7 @@ export function HierarchyGrid() {
     const isLoading = loadingRooms;
 
     if (isLoading) {
-        return <div className="p-8 text-center text-gray-500">Loading data...</div>;
+        return <div className="p-8 text-center text-stripe-text-secondary">Loading data...</div>;
     }
 
     return (
@@ -30,7 +30,7 @@ export function HierarchyGrid() {
             </div>
 
             {/* Header Row - Sticky */}
-            <div className="grid grid-cols-8 gap-4 border-b border-gray-200 bg-gray-50 px-4 py-3 text-xs font-semibold uppercase tracking-wider text-gray-500">
+            <div className="grid grid-cols-8 gap-4 border-b border-stripe-border bg-stripe-sidebar px-4 py-3 text-xs font-semibold uppercase tracking-wider text-stripe-text-secondary">
                 <div className="col-span-3 pl-8">Name</div>
                 <div className="col-span-2">Capacity</div>
                 <div className="col-span-2">Status</div>
@@ -49,7 +49,7 @@ export function HierarchyGrid() {
                         />
                     ))
                 ) : (
-                    <div className="p-8 text-center text-gray-500">
+                    <div className="p-8 text-center text-stripe-text-secondary">
                         {selectedPropertyId ? "No rooms found for this property." : "Select a property to view rooms."}
                     </div>
                 )}

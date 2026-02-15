@@ -1,5 +1,6 @@
-import * as React from 'react'
-import { Link, Outlet, createRootRouteWithContext } from '@tanstack/react-router'
+import { Outlet, createRootRouteWithContext, useLocation } from '@tanstack/react-router'
+import { Sidebar } from '../components/layout/Sidebar'
+import { TopBar } from '../components/layout/TopBar'
 
 export type userRole = 'manager' | 'client' | "";
 
@@ -24,18 +25,26 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 })
 
 function RootComponent() {
+  const location = useLocation()
+  const isLoginPage = location.pathname === '/login'
+
+  // Login page doesn't get the dashboard layout
+  if (isLoginPage) {
+    return <Outlet />
+  }
+
+  // All other pages get the dashboard layout with sidebar and topbar
   return (
-    <React.Fragment>
-      <nav className="p-4 bg-gray-800 text-white flex gap-4">
-        <Link to="/" className="font-bold hover:text-gray-300">Home</Link>
-        {/* <Link to="/property" className="hover:text-gray-300">Properties</Link> */}
-        {/* <Link to="/rooms" className="hover:text-gray-300">Rooms</Link> */}
-        {/* <Link to="/students" className="hover:text-gray-300">Students</Link> */}
-        <Link to="/transactions" className="hover:text-gray-300">Transactions</Link>
-      </nav>
-      <div className="container mx-auto p-4">
-        <Outlet />
+    <div className="flex h-screen w-full flex-col overflow-hidden bg-white">
+      <TopBar />
+      <div className="flex flex-1 overflow-hidden">
+        <Sidebar />
+        <main className="flex-1 overflow-auto bg-white">
+          <div className="p-6">
+            <Outlet />
+          </div>
+        </main>
       </div>
-    </React.Fragment>
+    </div>
   )
 }

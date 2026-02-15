@@ -13,7 +13,7 @@ interface RoomRowProps {
 }
 
 export function RoomRow({ room }: RoomRowProps) {
-    const [isExpanded, setIsExpanded] = useState(false);
+    const [isExpanded, setIsExpanded] = useState(true);
     const { openDrawer } = useAppStore();
 
     // Fetch tenants for this room specifically
@@ -108,9 +108,9 @@ export function RoomRow({ room }: RoomRowProps) {
 
                     {/* Room Summary Bar */}
                     <div className="flex items-center justify-between bg-gray-100 px-12 py-2 text-xs font-semibold uppercase tracking-wider text-gray-500">
-                        <span>Expected Monthly: $2,400</span>
+                        {/* <span>Expected Monthly: $2,400</span> */}
                         <span>Occupancy: {Math.round(occupancyPercentage)}%</span>
-                        <span className="text-red-500">Total Arrears: $200</span>
+                        {/* <span className="text-red-500">Total Arrears: $200</span> */}
                     </div>
                 </div>
             )}

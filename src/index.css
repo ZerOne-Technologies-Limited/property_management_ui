@@ -1,1 +1,34 @@
 @import "tailwindcss";
+
+@theme {
+  --color-stripe-purple: #635BFF;
+  --color-stripe-purple-light: #F0F0FF;
+  --color-stripe-header: #1A2B42;
+  --color-stripe-sidebar: #F0F2F5;
+  --color-stripe-text-primary: #30313F;
+  --color-stripe-text-secondary: #6B7A8C;
+  --color-stripe-border: #E0E0E0;
+  --color-stripe-banner: #ECF0FF;
+  --color-stripe-banner-text: #4B5263;
+}
+
+:root {
+  --stripe-purple: #635BFF;
+  --stripe-purple-light: #F0F0FF;
+  --stripe-header: #1A2B42;
+  --stripe-sidebar: #F0F2F5;
+  --stripe-text-primary: #30313F;
+  --stripe-text-secondary: #6B7A8C;
+  --stripe-border: #E0E0E0;
+  --stripe-banner: #ECF0FF;
+  --stripe-banner-text: #4B5263;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: var(--stripe-text-primary);
+}

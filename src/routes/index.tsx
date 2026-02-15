@@ -1,5 +1,4 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { DashboardLayout } from '../components/layout/DashboardLayout';
 import { HierarchyGrid } from '../components/dashboard/HierarchyGrid';
 import { DrawerManager } from '../components/layout/DrawerManager';
 
@@ -16,10 +15,10 @@ export const Route = createFileRoute('/')({
 
 function Dashboard() {
   return (
-    <DashboardLayout>
+    <>
       <HierarchyGrid />
       <DrawerManager />
-    </DashboardLayout>
+    </>
   )
 }
 

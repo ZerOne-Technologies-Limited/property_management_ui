@@ -12,7 +12,7 @@ export function useProperties() {
 
   const { isPending: isCreating, mutateAsync: addProperty } = useMutation({
     mutationFn: async ({ name, type }: { name: string; type: PropertyType }) => {
-      return createProperty({ name, type });
+      return createProperty({ Name: name, PropertyType: type });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['properties'] });

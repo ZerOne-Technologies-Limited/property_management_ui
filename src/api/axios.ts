@@ -31,6 +31,19 @@ api.interceptors.request.use((config) => {
   return Promise.reject(error);
 });
 
+// Add a response interceptor to handle errors (e.g., 401 Unauthorized)
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Clear auth state and redirect to login
+      useAppStore.getState().logout();
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
+
 export const loginUser = async (credentials: loginModel): Promise<LoginResponse> => {
   const { data } = await api.post<LoginResponse>('/auth/login', credentials);
   return data;
@@ -44,7 +57,7 @@ export const fetchProperties = async (): Promise<Property[]> => {
 
   // Map PascalCase to camelCase/frontend model
   return rawProperties.map((p: any) => ({
-    id: p.Id || p.id,
+    id: String(p.Id || p.id),
     name: p.Name || p.name,
     type: p.Type || p.type,
     // Provide defaults for missing fields if API doesn't send them yet
@@ -54,8 +67,17 @@ export const fetchProperties = async (): Promise<Property[]> => {
 }
 
 export const createProperty = async (propertyDetails: CreatePropertyPayload): Promise<Property> => {
-  const { data } = await api.post<Property>('/properties', propertyDetails);
-  return data;
+  const { data } = await api.post<any>('/property/property', propertyDetails);
+
+  // Map PascalCase response to camelCase/frontend model
+  // Assuming API returns { Id, Name, Type, CreatedAt, CreatedBy }
+  return {
+    id: String(data.Id || data.id),
+    name: data.Name || data.name,
+    type: data.Type || data.type || propertyDetails.PropertyType,
+    created_at: data.CreatedAt || data.created_at || new Date().toISOString(),
+    created_by: data.CreatedBy || data.created_by || 'system'
+  };
 }
 
 export const fetchRooms = async (propertyId: string): Promise<Room[]> => {

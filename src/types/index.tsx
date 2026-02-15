@@ -10,8 +10,8 @@ export interface Property {
 }
 
 export interface CreatePropertyPayload {
-  name: string;
-  type: PropertyType;
+  Name: string;
+  PropertyType: PropertyType;
 }
 
 export interface CreateRoomPayload {

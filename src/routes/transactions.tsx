@@ -2,7 +2,6 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Filter, Loader2, X } from 'lucide-react'
-import { DashboardLayout } from '../components/layout/DashboardLayout'
 import { useTransactions } from '../hooks/useTransactions'
 import { fetchTenantById } from '../api/axios'
 import { useProperties } from '../hooks/useProperties'
@@ -103,16 +102,21 @@ function TransactionsPage() {
   const { transactions, loading, error } = useTransactions(debouncedFilters, hasFilters)
 
   return (
-    <DashboardLayout>
+    <>
+      {/* Page Title */}
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-stripe-text-primary">Transactions</h1>
+      </div>
+
       {/* Filter Panel */}
-      <div className="border-b border-gray-200 bg-gray-50 p-5">
+      <div className="mb-6 border-b border-stripe-border bg-stripe-sidebar p-5">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <Filter className="size-4 text-gray-500" />
-            <span className="text-sm font-semibold text-gray-700">Filters</span>
+            <Filter className="size-4 text-stripe-text-secondary" />
+            <span className="text-sm font-semibold text-stripe-text-primary">Filters</span>
           </div>
           {hasFormValues && (
-            <Button variant="ghost" size="sm" className="text-xs text-gray-500 hover:text-gray-700" onClick={handleReset}>
+            <Button variant="ghost" size="sm" className="text-xs text-stripe-text-secondary hover:text-stripe-text-primary" onClick={handleReset}>
               <X className="size-3 mr-1" />
               Clear
             </Button>
@@ -122,7 +126,7 @@ function TransactionsPage() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {/* Property */}
           <div className="space-y-1">
-            <Label className="text-xs text-gray-500">Property</Label>
+            <Label className="text-xs text-stripe-text-secondary">Property</Label>
             <select
               className={selectClass}
               value={form.propertyId}
@@ -140,9 +144,8 @@ function TransactionsPage() {
             <Label className="text-xs text-gray-500">Room</Label>
             <select
               className={selectClass}
-              value={form.roomId}
+              value={form.roomId || ""}
               onChange={(e) => handleRoomChange(e.target.value)}
-              disabled={!form.propertyId || rooms.length === 0}
             >
               <option value="">All Rooms</option>
               {rooms.map(r => (
@@ -306,6 +309,6 @@ function TransactionsPage() {
           </table>
         )}
       </div>
-    </DashboardLayout>
+    </>
   )
 }

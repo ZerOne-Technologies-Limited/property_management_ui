@@ -1,70 +1,82 @@
-import { useEffect } from "react";
-import { Search, Calendar } from "lucide-react";
+import { Search, HelpCircle, Bell, Settings, Plus } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { useAppStore } from "../../lib/store";
-import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import { useProperties } from "../../hooks/useProperties";
 
 export function TopBar() {
-    const { selectedPropertyId, setSelectedPropertyId } = useAppStore();
-    const { properties, loading } = useProperties();
+  const user = useAppStore((state) => state.user);
 
-    const selectedProperty = properties.find(p => p.id === selectedPropertyId);
+  // Get user initials for avatar
+  const initials = user?.name
+    ? user.name
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2)
+    : "U";
 
-    // Validate selectedPropertyId against loaded properties
-    useEffect(() => {
-        if (!loading && properties.length > 0) {
-            // If we have a selected ID but it's not in the list, or if we have no selection but have items
-            const isValid = properties.some(p => p.id === selectedPropertyId);
-            if (selectedPropertyId && !isValid) {
-                // Legacy or invalid ID found, reset to first available
-                setSelectedPropertyId(properties[0].id);
-            } else if (!selectedPropertyId) {
-                // Auto-select first if none selected
-                setSelectedPropertyId(properties[0].id);
-            }
-        }
-    }, [loading, properties, selectedPropertyId, setSelectedPropertyId]);
+  return (
+    <div className="sticky top-0 z-30 flex h-16 w-full items-center gap-4 border-b border-stripe-header/20 bg-stripe-header px-6">
+      {/* Logo/Brand */}
+      <div className="flex items-center gap-2">
+        <span className="text-lg font-semibold text-white">ProptyMng</span>
+      </div>
 
-    return (
-        <div className="sticky top-0 z-30 flex h-16 w-full items-center gap-4 border-b border-gray-200 bg-white px-6 shadow-sm">
-            {/* Property Selector */}
-            <div className="flex items-center gap-2">
-                <label className="text-sm font-medium text-gray-500">Property:</label>
-                <select
-                    className="h-9 rounded-md border border-gray-300 bg-transparent px-3 text-sm font-semibold focus:outline-blue-500"
-                    value={selectedPropertyId || (selectedProperty?.id ?? "")}
-                    onChange={(e) => setSelectedPropertyId(e.target.value)}
-                    disabled={loading}
-                >
-                    <option value="" disabled>Select Property</option>
-                    {properties.map(prop => (
-                        <option key={prop.id} value={prop.id}>{prop.name}</option>
-                    ))}
-                </select>
-            </div>
+      {/* Info Banner (optional - can be removed if not needed) */}
+      {/* <div className="ml-4 flex items-center gap-2 rounded-md bg-stripe-banner px-3 py-1.5">
+        <span className="text-xs font-medium text-stripe-banner-text">
+          You're testing in a sandbox environment
+        </span>
+      </div> */}
 
-            {/* Date Range Filter (Mock) */}
-            <Button variant="outline" size="sm" className="ml-4 gap-2 text-gray-600">
-                <Calendar className="size-4" />
-                <span>This Month</span>
-            </Button>
+      <div className="flex-1" />
 
-            <div className="flex-1" />
+      {/* Global Search */}
+      <div className="relative w-64">
+        <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-stripe-text-secondary" />
+        <Input
+          className="h-9 border-0 bg-white/10 pl-9 text-sm text-white placeholder:text-white/60 focus-visible:ring-2 focus-visible:ring-white/20"
+          placeholder="Search..."
+        />
+      </div>
 
-            {/* Global Search */}
-            <div className="relative w-64">
-                <Search className="absolute left-2.5 top-2.5 size-4 text-gray-400" />
-                <Input
-                    className="pl-9"
-                    placeholder="Search Room, Tenant, Phone..."
-                />
-            </div>
+      {/* Action Icons */}
+      <div className="flex items-center gap-2">
+        <button
+          className="flex size-8 items-center justify-center rounded-full text-white/80 transition-colors hover:bg-white/10 hover:text-white"
+          aria-label="Help"
+        >
+          <HelpCircle className="size-5" />
+        </button>
+        <button
+          className="flex size-8 items-center justify-center rounded-full text-white/80 transition-colors hover:bg-white/10 hover:text-white"
+          aria-label="Notifications"
+        >
+          <Bell className="size-5" />
+        </button>
+        <button
+          className="flex size-8 items-center justify-center rounded-full text-white/80 transition-colors hover:bg-white/10 hover:text-white"
+          aria-label="Settings"
+        >
+          <Settings className="size-5" />
+        </button>
+        <button
+          className="flex size-8 items-center justify-center rounded-full text-white/80 transition-colors hover:bg-white/10 hover:text-white"
+          aria-label="Add"
+        >
+          <Plus className="size-5" />
+        </button>
+      </div>
 
-            {/* User Logic would go here */}
-            <div className="size-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-xs">
-                MG
-            </div>
-        </div>
-    );
+      {/* User Profile */}
+      <Link
+        to="/profile"
+        className="flex size-8 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
+        aria-label="Profile"
+      >
+        <span className="text-xs font-semibold">{initials}</span>
+      </Link>
+    </div>
+  );
 }
