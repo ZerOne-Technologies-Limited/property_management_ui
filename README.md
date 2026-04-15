@@ -2,6 +2,15 @@
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
+## Docker
+
+- Production (build + serve with nginx): `docker compose up --build`
+  - App: `http://localhost:3000`
+  - Build-time API base URL comes from `VITE_API_URL` (defaults to `http://localhost:5288/`). Compose reads it from `.env` automatically.
+- Development (Vite HMR): `docker compose --profile dev up --build`
+  - App: `http://localhost:5173`
+  - Uses `.env.development` via `env_file`.
+
 Currently, two official plugins are available:
 
 - [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
