@@ -102,10 +102,10 @@ function TransactionsPage() {
   const { transactions, loading, error } = useTransactions(debouncedFilters, hasFilters)
 
   return (
-    <>
+    <div className="px-4 py-4 sm:px-6 sm:py-6">
       {/* Page Title */}
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-stripe-text-primary">Transactions</h1>
+        <h1 className="text-2xl font-bold text-stripe-text-primary sm:text-3xl">Transactions</h1>
       </div>
 
       {/* Filter Panel */}
@@ -309,6 +309,6 @@ function TransactionsPage() {
           </table>
         )}
       </div>
-    </>
+    </div>
   )
 }

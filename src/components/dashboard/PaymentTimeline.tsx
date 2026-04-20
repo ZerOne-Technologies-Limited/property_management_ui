@@ -8,15 +8,15 @@ import { cn } from "../../lib/utils";
 interface PaymentTimelineProps {
     payments: Transaction[];
     tenantId: string;
+    showTotal?: boolean;
+    maxItems?: number;
 }
 
-export function PaymentTimeline({ payments, tenantId: _tenantId }: PaymentTimelineProps) {
+export function PaymentTimeline({ payments, tenantId: _tenantId, showTotal = true, maxItems = 3 }: PaymentTimelineProps) {
     const { openDrawer } = useAppStore();
-    // Sort oldest to newest
     const sortedPayments = [...payments].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
 
-    // We want to show 3 items by default, compact.
-    const ITEMS_TO_SHOW = 3;
+    const ITEMS_TO_SHOW = maxItems;
 
     const [startIndex, setStartIndex] = useState(0);
     const [selectedPaymentIds, setSelectedPaymentIds] = useState<Set<string>>(new Set());
@@ -51,6 +51,10 @@ export function PaymentTimeline({ payments, tenantId: _tenantId }: PaymentTimeli
             return newSet;
         });
     };
+
+    const allTotal = useMemo(() => {
+        return sortedPayments.reduce((sum, p) => sum + p.amount, 0);
+    }, [sortedPayments]);
 
     const selectedTotal = useMemo(() => {
         return sortedPayments
@@ -168,10 +172,17 @@ export function PaymentTimeline({ payments, tenantId: _tenantId }: PaymentTimeli
                 )}
             </div>
 
-            {/* Total Display */}
-            {selectedPaymentIds.size > 0 && (
-                <div className="ml-2 px-2 py-1 rounded bg-emerald-50 border border-emerald-300 text-emerald-700 font-mono font-bold text-xs">
-                    Total: {selectedTotal}
+            {/* Always-visible total — hidden when parent renders its own total column */}
+            {showTotal && (
+                <div className="ml-2 flex items-center gap-1.5">
+                    <span className="font-mono text-xs font-semibold text-gray-700">
+                        K{allTotal.toLocaleString()}
+                    </span>
+                    {selectedPaymentIds.size > 0 && (
+                        <span className="rounded bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 font-mono text-xs font-bold text-emerald-700">
+                            sel: K{selectedTotal.toLocaleString()}
+                        </span>
+                    )}
                 </div>
             )}
         </div>

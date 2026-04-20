@@ -22,10 +22,12 @@ interface UIState {
         type: 'ROOM' | 'TENANT' | 'PAYMENT' | 'PAYMENT_HISTORY' | 'NONE';
         dataOrId: any;
     };
+    dateFilter: { from: string | null; to: string | null };
     setSelectedPropertyId: (id: string) => void;
     toggleSidebar: () => void;
     openDrawer: (type: 'ROOM' | 'TENANT' | 'PAYMENT' | 'PAYMENT_HISTORY', dataOrId: any) => void;
     closeDrawer: () => void;
+    setDateFilter: (from: string | null, to: string | null) => void;
 }
 
 interface DataState {
@@ -56,10 +58,12 @@ export const useAppStore = create<AppState>()(
             selectedPropertyId: null,
             isSidebarOpen: true,
             activeDrawer: { type: 'NONE', dataOrId: null },
+            dateFilter: { from: null, to: null },
             setSelectedPropertyId: (id) => set({ selectedPropertyId: id }),
             toggleSidebar: () => set((state) => ({ isSidebarOpen: !state.isSidebarOpen })),
             openDrawer: (type, dataOrId) => set({ activeDrawer: { type, dataOrId } }),
             closeDrawer: () => set({ activeDrawer: { type: 'NONE', dataOrId: null } }),
+            setDateFilter: (from, to) => set({ dateFilter: { from, to } }),
 
             // Data
             rooms: {},

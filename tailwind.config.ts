@@ -3,6 +3,9 @@ import type { Config } from 'tailwindcss'
 export default {
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
+      },
       colors: {
         stripe: {
           purple: '#635BFF',

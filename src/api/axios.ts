@@ -60,9 +60,9 @@ export const fetchProperties = async (): Promise<Property[]> => {
     id: String(p.Id || p.id),
     name: p.Name || p.name,
     type: p.Type || p.type,
-    // Provide defaults for missing fields if API doesn't send them yet
     created_at: p.CreatedAt || p.created_at || new Date().toISOString(),
-    created_by: p.CreatedBy || p.created_by || 'system'
+    created_by: p.CreatedBy || p.created_by || 'system',
+    dashboard_filter_state: p.FilterState || p.filter_state || p.DashboardFilterState || null,
   }));
 }
 
@@ -215,7 +215,7 @@ export const createTransaction = async (payload: CreateTransactionPayload): Prom
     tenant_id: String(rawTransaction.TenantId || payload.TenantId),
     room_id: String(rawTransaction.RoomId || payload.RoomId),
     property_id: String(rawTransaction.PropertyId || payload.PropertyId),
-    notes: `Payment for Room ${rawTransaction.RoomId}`, // Contextual default note if missing
+    notes: rawTransaction.Notes || rawTransaction.notes || payload.Notes || '',
     created_at: rawTransaction.CreatedAt || new Date().toISOString()
   };
 }
@@ -234,6 +234,10 @@ export const fetchTenantById = async (tenantId: number): Promise<Tenant | null> 
     created_at: raw.CreatedAt || new Date().toISOString()
   };
 }
+
+export const savePropertyFilter = async (propertyId: string, filterState: string | null): Promise<void> => {
+  await api.patch(`/property/${propertyId}/filter`, { FilterState: filterState });
+};
 
 export const fetchTransactions = async (filters: TransactionFilters): Promise<Transaction[]> => {
   const params = new URLSearchParams();

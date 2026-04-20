@@ -18,9 +18,10 @@ interface AddPaymentDialogProps {
     tenantId: string | number;
     roomId: string | number;
     propertyId: string | number;
+    iconOnly?: boolean;
 }
 
-export function AddPaymentDialog({ tenantId, roomId, propertyId }: AddPaymentDialogProps) {
+export function AddPaymentDialog({ tenantId, roomId, propertyId, iconOnly = false }: AddPaymentDialogProps) {
     const { addTransaction, isAddingTransaction } = useTransactions({ PropertyId: Number(propertyId) });
     const [open, setOpen] = useState(false);
     const [amount, setAmount] = useState<number | string>("");
@@ -46,14 +47,25 @@ export function AddPaymentDialog({ tenantId, roomId, propertyId }: AddPaymentDia
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 h-7 px-2 gap-1"
-                >
-                    <Plus className="size-3" />
-                    Add Payment
-                </Button>
+                {iconOnly ? (
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                        title="Add payment"
+                    >
+                        <Plus className="size-3.5" />
+                    </Button>
+                ) : (
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 h-7 px-2 gap-1"
+                    >
+                        <Plus className="size-3" />
+                        Add Payment
+                    </Button>
+                )}
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>

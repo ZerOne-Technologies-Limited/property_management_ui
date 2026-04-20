@@ -12,10 +12,10 @@ function ProfilePage() {
     const { user, logout } = useAppStore();
 
     return (
-        <div>
-                <div className="mb-8 flex items-center justify-between">
+        <div className="px-4 py-4 sm:px-6 sm:py-6">
+                <div className="mb-6 flex flex-wrap items-start justify-between gap-3 sm:mb-8">
                     <div>
-                        <h1 className="text-3xl font-bold text-stripe-text-primary">User Profile</h1>
+                        <h1 className="text-2xl font-bold text-stripe-text-primary sm:text-3xl">User Profile</h1>
                         <p className="mt-1 text-stripe-text-secondary">Manage your account settings and properties.</p>
                     </div>
                     <div className="flex gap-3">

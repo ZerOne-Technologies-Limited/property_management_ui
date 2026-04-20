@@ -1,12 +1,15 @@
-import { Search, HelpCircle, Bell, Settings, Plus } from "lucide-react";
+import { Search, Bell, Settings, Menu } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useAppStore } from "../../lib/store";
 import { Input } from "../ui/input";
 
-export function TopBar() {
+interface TopBarProps {
+  onToggleSidebar?: () => void;
+}
+
+export function TopBar({ onToggleSidebar }: TopBarProps) {
   const user = useAppStore((state) => state.user);
 
-  // Get user initials for avatar
   const initials = user?.name
     ? user.name
         .split(" ")
@@ -17,66 +20,58 @@ export function TopBar() {
     : "U";
 
   return (
-    <div className="sticky top-0 z-30 flex h-16 w-full items-center gap-4 border-b border-stripe-header/20 bg-stripe-header px-6">
-      {/* Logo/Brand */}
-      <div className="flex items-center gap-2">
-        <span className="text-lg font-semibold text-white">ProptyMng</span>
-      </div>
+    <div className="sticky top-0 z-30 flex h-14 w-full items-center gap-3 border-b border-stripe-header/20 bg-stripe-header px-4">
 
-      {/* Info Banner (optional - can be removed if not needed) */}
-      {/* <div className="ml-4 flex items-center gap-2 rounded-md bg-stripe-banner px-3 py-1.5">
-        <span className="text-xs font-medium text-stripe-banner-text">
-          You're testing in a sandbox environment
-        </span>
-      </div> */}
+      {/* Hamburger — mobile only */}
+      <button
+        className="flex size-8 items-center justify-center rounded-md text-white/80 transition-colors hover:bg-white/10 hover:text-white md:hidden"
+        onClick={onToggleSidebar}
+        aria-label="Toggle menu"
+      >
+        <Menu className="size-5" />
+      </button>
+
+      {/* Brand */}
+      <span className="text-base font-semibold text-white sm:text-lg">ProptyMng</span>
 
       <div className="flex-1" />
 
-      {/* Global Search */}
-      <div className="relative w-64">
+      {/* Search — hidden on mobile */}
+      <div className="relative hidden md:block w-56 lg:w-64">
         <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-stripe-text-secondary" />
         <Input
-          className="h-9 border-0 bg-white/10 pl-9 text-sm text-white placeholder:text-white/60 focus-visible:ring-2 focus-visible:ring-white/20"
+          className="h-8 border-0 bg-white/10 pl-9 text-sm text-white placeholder:text-white/60 focus-visible:ring-2 focus-visible:ring-white/20"
           placeholder="Search..."
         />
       </div>
 
-      {/* Action Icons */}
-      <div className="flex items-center gap-2">
-        <button
-          className="flex size-8 items-center justify-center rounded-full text-white/80 transition-colors hover:bg-white/10 hover:text-white"
-          aria-label="Help"
-        >
-          <HelpCircle className="size-5" />
-        </button>
+      {/* Action icons */}
+      <div className="flex items-center gap-1">
+        {/* Notifications — always visible */}
         <button
           className="flex size-8 items-center justify-center rounded-full text-white/80 transition-colors hover:bg-white/10 hover:text-white"
           aria-label="Notifications"
         >
-          <Bell className="size-5" />
+          <Bell className="size-4" />
         </button>
+
+        {/* Settings — desktop only */}
         <button
-          className="flex size-8 items-center justify-center rounded-full text-white/80 transition-colors hover:bg-white/10 hover:text-white"
+          className="hidden md:flex size-8 items-center justify-center rounded-full text-white/80 transition-colors hover:bg-white/10 hover:text-white"
           aria-label="Settings"
         >
-          <Settings className="size-5" />
+          <Settings className="size-4" />
         </button>
-        <button
-          className="flex size-8 items-center justify-center rounded-full text-white/80 transition-colors hover:bg-white/10 hover:text-white"
-          aria-label="Add"
-        >
-          <Plus className="size-5" />
-        </button>
-      </div>
 
-      {/* User Profile */}
-      <Link
-        to="/profile"
-        className="flex size-8 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
-        aria-label="Profile"
-      >
-        <span className="text-xs font-semibold">{initials}</span>
-      </Link>
+        {/* User avatar */}
+        <Link
+          to="/profile"
+          className="flex size-8 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
+          aria-label="Profile"
+        >
+          <span className="text-xs font-semibold">{initials}</span>
+        </Link>
+      </div>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { Outlet, createRootRouteWithContext, useLocation } from '@tanstack/react-router'
 import { Sidebar } from '../components/layout/Sidebar'
 import { TopBar } from '../components/layout/TopBar'
+import { useAppStore } from '../lib/store'
 
 export type userRole = 'manager' | 'client' | "";
 
@@ -27,22 +28,31 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 function RootComponent() {
   const location = useLocation()
   const isLoginPage = location.pathname === '/login'
+  const { isSidebarOpen, toggleSidebar } = useAppStore()
 
-  // Login page doesn't get the dashboard layout
   if (isLoginPage) {
     return <Outlet />
   }
 
-  // All other pages get the dashboard layout with sidebar and topbar
   return (
     <div className="flex h-screen w-full flex-col overflow-hidden bg-white">
-      <TopBar />
-      <div className="flex flex-1 overflow-hidden">
-        <Sidebar />
-        <main className="flex-1 overflow-auto bg-white">
-          <div className="p-6">
-            <Outlet />
-          </div>
+      <TopBar onToggleSidebar={toggleSidebar} />
+
+      <div className="relative flex flex-1 min-h-0 overflow-hidden">
+        {/* Mobile backdrop — closes sidebar on tap */}
+        {isSidebarOpen && (
+          <div
+            className="fixed inset-0 z-20 bg-black/40 md:hidden"
+            onClick={toggleSidebar}
+            aria-hidden="true"
+          />
+        )}
+
+        <Sidebar isOpen={isSidebarOpen} onClose={toggleSidebar} />
+
+        {/* Main content — no wrapper padding so Dashboard fills height correctly */}
+        <main className="flex-1 min-h-0 overflow-auto bg-white">
+          <Outlet />
         </main>
       </div>
     </div>

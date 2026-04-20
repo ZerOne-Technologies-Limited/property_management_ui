@@ -2,7 +2,6 @@ import { useState } from "react";
 import type { Room } from "../../types";
 import { TenantRow } from "./TenantRow";
 import { Button } from "../ui/button";
-import { Badge } from "../ui/badge";
 import { ChevronRight, ChevronDown, Edit, Loader2 } from "lucide-react";
 import { useAppStore } from "../../lib/store";
 import { useTenants } from "../../hooks/useTenants";
@@ -16,35 +15,38 @@ export function RoomRow({ room }: RoomRowProps) {
     const [isExpanded, setIsExpanded] = useState(true);
     const { openDrawer } = useAppStore();
 
-    // Fetch tenants for this room specifically
     const { tenants, loading } = useTenants(room.property_id, room.id);
 
     const loadTenants = () => {
         setIsExpanded(!isExpanded);
-    }
+    };
 
-    // Use passed tenants prop instead of filtering mock data
     const occupiedCount = tenants.length;
     const occupancyPercentage = (occupiedCount / room.maximum_capacity) * 100;
 
     return (
         <div className="border-b border-gray-100 last:border-0">
             <div
-                className={`group grid grid-cols-8 gap-4 cursor-pointer items-center p-4 transition-colors hover:bg-blue-50/30 ${isExpanded ? 'bg-blue-50/30' : 'bg-white'}`}
+                className={`group cursor-pointer items-center transition-colors hover:bg-blue-50/30 ${isExpanded ? 'bg-blue-50/30' : 'bg-white'}
+                    grid grid-cols-[auto_1fr_auto] gap-2 px-3 py-3 sm:grid-cols-8 sm:gap-4 sm:px-4`}
                 onClick={loadTenants}
             >
                 {/* Expand & Name */}
-                <div className="col-span-3 flex items-center gap-3">
-                    <Button variant="ghost" size="icon" className="h-6 w-6 text-gray-400">
+                <div className="flex items-center gap-2 sm:col-span-3">
+                    <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0 text-gray-400">
                         {isExpanded ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
                     </Button>
-                    <div>
-                        <h4 className="text-sm font-bold text-gray-900">{room.name}</h4>
+                    <div className="min-w-0">
+                        <h4 className="truncate text-sm font-bold text-gray-900">{room.name}</h4>
+                        {/* Occupancy shown inline on mobile */}
+                        <p className="text-[10px] text-gray-400 sm:hidden">
+                            {occupiedCount}/{room.maximum_capacity} occupied
+                        </p>
                     </div>
                 </div>
 
-                {/* Capacity */}
-                <div className="col-span-2 flex items-center gap-2">
+                {/* Capacity — desktop only */}
+                <div className="hidden sm:col-span-2 sm:flex items-center gap-2">
                     <span className="text-sm font-medium text-gray-600">{occupiedCount} / {room.maximum_capacity}</span>
                     <div className="h-1.5 w-16 rounded-full bg-gray-200">
                         <div
@@ -54,30 +56,14 @@ export function RoomRow({ room }: RoomRowProps) {
                     </div>
                 </div>
 
-                {/* Status */}
-                <div className="col-span-2">
-                    <Badge variant={occupancyPercentage >= 100 ? 'destructive' : occupancyPercentage === 0 ? 'secondary' : 'default'} className={occupancyPercentage === 0 ? 'bg-gray-100 text-gray-600' : ''}>
-                        {occupancyPercentage >= 100 ? 'Full' : occupancyPercentage === 0 ? 'Vacant' : 'Partial'}
-                    </Badge>
+                {/* Total — desktop only */}
+                <div className="hidden sm:block sm:col-span-2">
+                    <span className="text-sm text-gray-300">—</span>
                 </div>
 
-                {/* Revenue */}
-                {/* <div className="col-span-2">
-                    <div className="inline-flex items-center rounded-md border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-sm font-medium text-emerald-700">
-                        $1,200
-                    </div>
-                </div> */}
-
-                {/* Balance */}
-                {/* <div className="col-span-2">
-                    <div className="inline-flex items-center rounded-md border border-red-200 bg-red-50 px-2.5 py-0.5 text-sm font-medium text-red-700">
-                        -$200
-                    </div>
-                </div> */}
-
                 {/* Actions */}
-                <div className="col-span-1 flex justify-end">
-                    <div className="flex gap-2 opacity-0 transition-opacity group-hover:opacity-100" onClick={e => e.stopPropagation()}>
+                <div className="flex justify-end sm:col-span-1">
+                    <div className="flex gap-1 sm:gap-2 sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100" onClick={e => e.stopPropagation()}>
                         <AddTenantDialog roomId={room.id} />
                         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openDrawer('ROOM', room)}>
                             <Edit className="size-4 text-gray-500" />

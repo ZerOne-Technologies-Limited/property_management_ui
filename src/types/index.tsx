@@ -7,6 +7,7 @@ export interface Property {
   type: PropertyType;
   created_at: string;
   created_by: string;
+  dashboard_filter_state?: string | null;
 }
 
 export interface CreatePropertyPayload {
@@ -68,6 +69,7 @@ export interface CreateTransactionPayload {
   RoomId: number;
   PropertyId: number;
   TenantId: number;
+  Notes?: string;
 }
 
 export interface Transaction {
