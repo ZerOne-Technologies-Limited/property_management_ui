@@ -4,7 +4,7 @@ import { useAppStore } from "../../lib/store";
 import { useRooms } from "../../hooks/useRooms";
 import { useProperties } from "../../hooks/useProperties";
 import { AddRoomDialog } from "./AddRoomDialog";
-import { X, ChevronLeft, ChevronRight } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { Button } from "../ui/button";
 import { cn } from "../../lib/utils";
 import { savePropertyFilter } from "../../api/axios";
@@ -333,6 +333,7 @@ export function HierarchyGrid() {
     const selectedPropertyId = useAppStore(state => state.selectedPropertyId);
     const { rooms, loading: loadingRooms } = useRooms(selectedPropertyId || "");
     const { properties } = useProperties();
+    const [searchQuery, setSearchQuery] = useState("");
 
     // Parse the saved filter state for the currently-selected property
     const savedFilterState = useMemo<FilterSaveState | undefined>(() => {
@@ -357,15 +358,40 @@ export function HierarchyGrid() {
 
     return (
         <div className="flex flex-col h-full">
-            {/* Toolbar — sticky so the date picker stays visible while scrolling */}
-            <div className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-2 px-3 py-2.5 sm:px-4 sm:py-3 border-b border-stripe-border bg-white">
-                {/* key forces DateFilterBar to remount (and restore saved state) when property changes */}
-                <DateFilterBar
-                    key={selectedPropertyId ?? "none"}
-                    initialState={savedFilterState}
-                    onFilterChange={handleFilterChange}
-                />
-                <AddRoomDialog />
+            {/* Sticky header: date filter + search + add room */}
+            <div className="sticky top-0 z-10 border-b border-stripe-border bg-white">
+                {/* Row 1 — Date filter & Add Room */}
+                <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2.5 sm:px-4 sm:py-3 border-b border-stripe-border/50">
+                    <DateFilterBar
+                        key={selectedPropertyId ?? "none"}
+                        initialState={savedFilterState}
+                        onFilterChange={handleFilterChange}
+                    />
+                    <AddRoomDialog />
+                </div>
+
+                {/* Row 2 — Student search */}
+                <div className="px-3 py-2 sm:px-4">
+                    <div className="relative">
+                        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-stripe-text-secondary pointer-events-none" />
+                        <input
+                            type="text"
+                            value={searchQuery}
+                            onChange={e => setSearchQuery(e.target.value)}
+                            placeholder="Search student by name…"
+                            className="h-8 w-full rounded-md border border-stripe-border bg-white pl-8 pr-8 text-sm text-stripe-text-primary placeholder:text-stripe-text-secondary focus:outline-none focus:ring-2 focus:ring-stripe-purple/40 focus:border-stripe-purple/50"
+                        />
+                        {searchQuery && (
+                            <button
+                                onClick={() => setSearchQuery("")}
+                                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-stripe-text-secondary hover:text-stripe-text-primary"
+                                aria-label="Clear search"
+                            >
+                                <X className="size-3.5" />
+                            </button>
+                        )}
+                    </div>
+                </div>
             </div>
 
             {/* Column headers — desktop */}
@@ -384,7 +410,24 @@ export function HierarchyGrid() {
             {/* Room rows */}
             <div className="flex flex-col overflow-y-auto flex-1">
                 {rooms.length > 0 ? (
-                    rooms.map(room => <RoomRow key={room.id} room={room} />)
+                    <>
+                        {rooms.map(room => (
+                            <RoomRow key={room.id} room={room} searchQuery={searchQuery} />
+                        ))}
+                        {/* Shown only when search yields no results across all rooms */}
+                        {searchQuery.trim() && (
+                            <div className="p-8 text-center text-stripe-text-secondary">
+                                <Search className="mx-auto mb-2 size-8 opacity-30" />
+                                <p className="text-sm">No students found matching <span className="font-medium text-stripe-text-primary">"{searchQuery}"</span></p>
+                                <button
+                                    className="mt-2 text-xs text-stripe-purple hover:underline"
+                                    onClick={() => setSearchQuery("")}
+                                >
+                                    Clear search
+                                </button>
+                            </div>
+                        )}
+                    </>
                 ) : (
                     <div className="p-8 text-center text-stripe-text-secondary">
                         {selectedPropertyId

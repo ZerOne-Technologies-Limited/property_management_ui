@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import type { Room } from "../../types";
 import { TenantRow } from "./TenantRow";
 import { Button } from "../ui/button";
@@ -9,16 +9,36 @@ import { AddTenantDialog } from "./AddTenantDialog";
 
 interface RoomRowProps {
     room: Room;
+    searchQuery?: string;
 }
 
-export function RoomRow({ room }: RoomRowProps) {
+export function RoomRow({ room, searchQuery = "" }: RoomRowProps) {
     const [isExpanded, setIsExpanded] = useState(true);
     const { openDrawer } = useAppStore();
 
     const { tenants, loading } = useTenants(room.property_id, room.id);
 
+    const isSearching = searchQuery.trim().length > 0;
+
+    // Auto-expand when a search is active
+    useEffect(() => {
+        if (isSearching) setIsExpanded(true);
+    }, [isSearching]);
+
+    // Filter tenants by name when searching
+    const displayedTenants = useMemo(() => {
+        if (!isSearching) return tenants;
+        const q = searchQuery.trim().toLowerCase();
+        return tenants.filter(t =>
+            `${t.first_name} ${t.last_name}`.toLowerCase().includes(q)
+        );
+    }, [tenants, searchQuery, isSearching]);
+
+    // Hide this room entirely when searching and nothing matches (not still loading)
+    if (isSearching && !loading && displayedTenants.length === 0) return null;
+
     const loadTenants = () => {
-        setIsExpanded(!isExpanded);
+        if (!isSearching) setIsExpanded(v => !v);
     };
 
     const occupiedCount = tenants.length;
@@ -37,7 +57,15 @@ export function RoomRow({ room }: RoomRowProps) {
                         {isExpanded ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
                     </Button>
                     <div className="min-w-0">
-                        <h4 className="truncate text-sm font-bold text-gray-900">{room.name}</h4>
+                        <div className="flex items-center gap-2">
+                            <h4 className="truncate text-sm font-bold text-gray-900">{room.name}</h4>
+                            {/* Match count badge while searching */}
+                            {isSearching && !loading && (
+                                <span className="shrink-0 rounded-full bg-stripe-purple px-1.5 py-0.5 text-[10px] font-semibold text-white leading-none">
+                                    {displayedTenants.length}
+                                </span>
+                            )}
+                        </div>
                         {/* Occupancy shown inline on mobile */}
                         <p className="text-[10px] text-gray-400 sm:hidden">
                             {occupiedCount}/{room.maximum_capacity} occupied
@@ -80,13 +108,13 @@ export function RoomRow({ room }: RoomRowProps) {
                         </div>
                     ) : (
                         <>
-                            {tenants.map(tenant => (
+                            {displayedTenants.map(tenant => (
                                 <TenantRow
                                     key={tenant.id}
                                     tenant={tenant}
                                 />
                             ))}
-                            {tenants.length === 0 && (
+                            {displayedTenants.length === 0 && !isSearching && (
                                 <div className="p-4 text-center text-sm text-gray-500">No tenants assigned to this room.</div>
                             )}
                         </>
