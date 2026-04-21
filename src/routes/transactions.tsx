@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState, useEffect, useMemo, useRef } from 'react'
 import {
-  Filter, Loader2, X, Printer, Download, Receipt,
+  Filter, X, Printer, Download, Receipt,
   ChevronDown, ChevronUp, Search,
 } from 'lucide-react'
 import { useTransactions } from '../hooks/useTransactions'
