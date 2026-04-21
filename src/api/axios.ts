@@ -249,15 +249,15 @@ export const registerWithProperty = async (payload: {
   PhoneNumber: string;
   Password: string;
   PropertyName: string;
-  PropertyType: import('./types').PropertyType;
-}): Promise<import('./types/auth').LoginResponse> => {
-  const { data } = await api.post<import('./types/auth').LoginResponse>('/manager/setup', payload);
+  PropertyType: import('../types').PropertyType;
+}): Promise<import('../types/auth').LoginResponse> => {
+  const { data } = await api.post<import('../types/auth').LoginResponse>('/manager/setup', payload);
   return data;
 };
 
 export const fetchPropertyUsers = async (propertyId: string): Promise<{
-  users: import('./types').PropertyUser[];
-  callerRole: import('./types').PropertyUserRole;
+  users: import('../types').PropertyUser[];
+  callerRole: import('../types').PropertyUserRole;
 }> => {
   const { data } = await api.get<any>(`/property/${propertyId}/users`);
   return {
@@ -265,17 +265,17 @@ export const fetchPropertyUsers = async (propertyId: string): Promise<{
       id: String(u.UserId ?? u.id),
       name: u.Name ?? u.name,
       phone: u.Phone ?? u.phone ?? null,
-      role: (u.Role ?? u.role) as import('./types').PropertyUserRole,
+      role: (u.Role ?? u.role) as import('../types').PropertyUserRole,
     })),
-    callerRole: (data?.CallerRole ?? data?.callerRole) as import('./types').PropertyUserRole,
+    callerRole: (data?.CallerRole ?? data?.callerRole) as import('../types').PropertyUserRole,
   };
 };
 
 export const addPropertyUser = async (
   propertyId: string,
   phone: string,
-  role: import('./types').PropertyUserRole,
-): Promise<import('./types').PropertyUser> => {
+  role: import('../types').PropertyUserRole,
+): Promise<import('../types').PropertyUser> => {
   const { data } = await api.post<any>(`/property/${propertyId}/users`, {
     PropertyId: Number(propertyId),
     PhoneNumber: phone,
@@ -285,15 +285,15 @@ export const addPropertyUser = async (
     id: String(data.UserId ?? data.id),
     name: data.Name ?? data.name,
     phone: data.Phone ?? data.phone ?? null,
-    role: (data.Role ?? data.role) as import('./types').PropertyUserRole,
+    role: (data.Role ?? data.role) as import('../types').PropertyUserRole,
   };
 };
 
 export const updatePropertyUserRole = async (
   propertyId: string,
   userId: string,
-  role: import('./types').PropertyUserRole,
-): Promise<import('./types').PropertyUser> => {
+  role: import('../types').PropertyUserRole,
+): Promise<import('../types').PropertyUser> => {
   const { data } = await api.patch<any>(`/property/${propertyId}/users/${userId}/role`, {
     PropertyId: Number(propertyId),
     UserId: Number(userId),
@@ -303,7 +303,7 @@ export const updatePropertyUserRole = async (
     id: String(data.UserId ?? data.id),
     name: data.Name ?? data.name,
     phone: data.Phone ?? data.phone ?? null,
-    role: (data.Role ?? data.role) as import('./types').PropertyUserRole,
+    role: (data.Role ?? data.role) as import('../types').PropertyUserRole,
   };
 };
 

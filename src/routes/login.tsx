@@ -150,7 +150,7 @@ function RouteComponent() {
           </p>
 
           <ul className="mt-10 space-y-4">
-            {FEATURES.map(({ icon: Icon, text }) => (
+            {FEATURES.map(({ text }) => (
               <li key={text} className="flex items-center gap-3">
                 <CheckCircle2 className="size-5 shrink-0" style={{ color: '#635BFF' }} />
                 <span className="text-sm text-slate-300">{text}</span>
