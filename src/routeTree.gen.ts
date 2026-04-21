@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TransactionsRouteImport } from './routes/transactions'
 import { Route as TenantsRouteImport } from './routes/tenants'
+import { Route as PropertyUsersRouteImport } from './routes/property-users'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as IndexRouteImport } from './routes/index'
@@ -23,6 +24,11 @@ const TransactionsRoute = TransactionsRouteImport.update({
 const TenantsRoute = TenantsRouteImport.update({
   id: '/tenants',
   path: '/tenants',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PropertyUsersRoute = PropertyUsersRouteImport.update({
+  id: '/property-users',
+  path: '/property-users',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProfileRoute = ProfileRouteImport.update({
@@ -45,6 +51,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
+  '/property-users': typeof PropertyUsersRoute
   '/tenants': typeof TenantsRoute
   '/transactions': typeof TransactionsRoute
 }
@@ -52,6 +59,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
+  '/property-users': typeof PropertyUsersRoute
   '/tenants': typeof TenantsRoute
   '/transactions': typeof TransactionsRoute
 }
@@ -60,21 +68,42 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
+  '/property-users': typeof PropertyUsersRoute
   '/tenants': typeof TenantsRoute
   '/transactions': typeof TransactionsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/profile' | '/tenants' | '/transactions'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/profile'
+    | '/property-users'
+    | '/tenants'
+    | '/transactions'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/profile' | '/tenants' | '/transactions'
-  id: '__root__' | '/' | '/login' | '/profile' | '/tenants' | '/transactions'
+  to:
+    | '/'
+    | '/login'
+    | '/profile'
+    | '/property-users'
+    | '/tenants'
+    | '/transactions'
+  id:
+    | '__root__'
+    | '/'
+    | '/login'
+    | '/profile'
+    | '/property-users'
+    | '/tenants'
+    | '/transactions'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LoginRoute: typeof LoginRoute
   ProfileRoute: typeof ProfileRoute
+  PropertyUsersRoute: typeof PropertyUsersRoute
   TenantsRoute: typeof TenantsRoute
   TransactionsRoute: typeof TransactionsRoute
 }
@@ -93,6 +122,13 @@ declare module '@tanstack/react-router' {
       path: '/tenants'
       fullPath: '/tenants'
       preLoaderRoute: typeof TenantsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/property-users': {
+      id: '/property-users'
+      path: '/property-users'
+      fullPath: '/property-users'
+      preLoaderRoute: typeof PropertyUsersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/profile': {
@@ -123,6 +159,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginRoute: LoginRoute,
   ProfileRoute: ProfileRoute,
+  PropertyUsersRoute: PropertyUsersRoute,
   TenantsRoute: TenantsRoute,
   TransactionsRoute: TransactionsRoute,
 }

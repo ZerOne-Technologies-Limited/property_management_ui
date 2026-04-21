@@ -1,5 +1,5 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { Home, Receipt, User, Building2, X, Users, ChevronsUpDown, Search, Check } from "lucide-react";
+import { Home, Receipt, User, Building2, X, Users, ChevronsUpDown, Search, Check, UserCog } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { useProperties } from "../../hooks/useProperties";
 import { useAppStore } from "../../lib/store";
@@ -15,6 +15,7 @@ const navItems: NavItem[] = [
   { label: "Home", path: "/", icon: Home },
   { label: "Tenants", path: "/tenants", icon: Users },
   { label: "Transactions", path: "/transactions", icon: Receipt },
+  { label: "Users", path: "/property-users", icon: UserCog },
 ];
 
 // ─── PropertyCombobox ─────────────────────────────────────────────────────────

@@ -8,10 +8,11 @@ interface AuthState {
         id: string;
         role: UserRole;
         name: string;
+        phone: string | null;
     } | null;
     token: string | null;
     isAuthenticated: boolean;
-    login: (data: LoginResponse, role: UserRole) => void; // simplistic for now
+    login: (data: LoginResponse, role: UserRole) => void;
     logout: () => void;
 }
 
@@ -47,11 +48,23 @@ export const useAppStore = create<AppState>()(
             user: null,
             token: null,
             isAuthenticated: false,
-            login: (data, role) => set({
-                token: data.Token,
-                isAuthenticated: true,
-                user: { id: 'mock-user-id', role, name: 'Manager' } // decoding would happen here
-            }),
+            login: (data, _role) => {
+                // Decode JWT payload to extract real user claims
+                let id = '';
+                let name = 'User';
+                let phone: string | null = null;
+                let role: UserRole = 'Manager';
+                try {
+                    const payload = JSON.parse(atob(data.Token.split('.')[1]));
+                    id = String(payload['UserId'] ?? payload['userId'] ?? '');
+                    name = payload['name'] ?? payload['unique_name'] ?? 'User';
+                    phone = payload['phone_number'] ?? payload['PhoneNumber'] ?? null;
+                    const roles = payload['role'] ?? payload['roles'] ?? payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
+                    if (Array.isArray(roles)) role = roles[0] as UserRole;
+                    else if (roles) role = roles as UserRole;
+                } catch { /* keep defaults */ }
+                set({ token: data.Token, isAuthenticated: true, user: { id, role, name, phone } });
+            },
             logout: () => set({ user: null, token: null, isAuthenticated: false }),
 
             // UI

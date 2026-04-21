@@ -100,6 +100,15 @@ export interface UserProperty {
   created_at: string;
 }
 
+export type PropertyUserRole = 'Owner' | 'CoManager' | 'Viewer';
+
+export interface PropertyUser {
+  id: string;
+  name: string;
+  phone: string | null;
+  role: PropertyUserRole;
+}
+
 export interface RoomWithDetails extends Room {
   tenants: Tenant[];
   total_amount?: number;
