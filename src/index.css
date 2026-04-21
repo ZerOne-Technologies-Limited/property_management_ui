@@ -24,6 +24,15 @@
   --stripe-banner-text: #4B5263;
 }
 
+@keyframes aurora {
+  from { background-position: 50% 50%, 50% 50%; }
+  to   { background-position: 350% 50%, 350% 50%; }
+}
+
+.animate-aurora {
+  animation: aurora 12s linear infinite;
+}
+
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;

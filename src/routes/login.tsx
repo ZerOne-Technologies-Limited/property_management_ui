@@ -150,7 +150,17 @@ function RouteComponent() {
       </div>
 
       {/* ── Right form panel ──────────────────────────────────────────────────── */}
-      <div className="flex flex-1 flex-col items-center justify-center bg-[#F8F9FB] px-4 py-10 sm:px-8">
+      <div className="relative flex flex-1 flex-col items-center justify-center overflow-hidden bg-[#F8F9FB] px-4 py-10 sm:px-8">
+        {/* Aurora layer */}
+        <div
+          className="animate-aurora pointer-events-none absolute inset-0 opacity-40 [background-image:repeating-linear-gradient(100deg,#ede9ff_0%,#ede9ff_7%,transparent_10%,transparent_12%,#ede9ff_16%),repeating-linear-gradient(100deg,#c4b5fd_10%,#ddd6fe_15%,#e9d5ff_20%,#f3e8ff_25%,#d8b4fe_30%)] [background-size:300%_200%,200%_100%]"
+          style={{ filter: 'blur(24px)' }}
+        />
+        {/* Soft radial vignette so edges stay neutral */}
+        <div className="pointer-events-none absolute inset-0 [background:radial-gradient(ellipse_at_center,transparent_40%,#F8F9FB_80%)]" />
+        {/* Content above aurora */}
+        <div className="relative z-10 flex w-full flex-col items-center">
+
         {/* Mobile logo */}
         <div className="mb-8 flex flex-col items-center lg:hidden">
           <div className="mb-3 flex size-12 items-center justify-center rounded-xl bg-[#635BFF] shadow-md">
@@ -354,6 +364,7 @@ function RouteComponent() {
             </div>
           </div>
         </div>
+        </div>{/* end z-10 content wrapper */}
       </div>
     </div>
   )
