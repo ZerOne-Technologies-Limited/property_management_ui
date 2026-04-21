@@ -195,9 +195,9 @@ export const fetchTenants = async (propertyId?: string, roomId?: string): Promis
     id: String(t.TenantId || t.id),
     first_name: t.FirstName || t.first_name,
     last_name: t.LastName || t.last_name,
-    whatsapp_number: t.WhatsappNumber || t.whatsapp_number,
-    room_id: String(t.RoomId || t.room_id),
-    property_id: propertyId || '', // API might not return it if filtered by it
+    whatsapp_number: t.WhatsappNumber || t.whatsapp_number || null,
+    room_id: (t.RoomId != null && t.RoomId !== 0) ? String(t.RoomId) : (t.room_id != null && t.room_id !== '0' && t.room_id !== 0) ? String(t.room_id) : null,
+    property_id: propertyId || '',
     created_at: t.CreatedAt || new Date().toISOString()
   }));
 }
@@ -228,8 +228,8 @@ export const fetchTenantById = async (tenantId: number): Promise<Tenant | null> 
     id: String(raw.TenantId || raw.id),
     first_name: raw.FirstName || raw.first_name,
     last_name: raw.LastName || raw.last_name,
-    whatsapp_number: raw.WhatsappNumber || raw.whatsapp_number,
-    room_id: String(raw.RoomId || raw.room_id),
+    whatsapp_number: raw.WhatsappNumber || raw.whatsapp_number || null,
+    room_id: (raw.RoomId != null && raw.RoomId !== 0) ? String(raw.RoomId) : (raw.room_id != null && raw.room_id !== '0' && raw.room_id !== 0) ? String(raw.room_id) : null,
     property_id: '',
     created_at: raw.CreatedAt || new Date().toISOString()
   };
@@ -237,6 +237,10 @@ export const fetchTenantById = async (tenantId: number): Promise<Tenant | null> 
 
 export const savePropertyFilter = async (propertyId: string, filterState: string | null): Promise<void> => {
   await api.patch(`/property/${propertyId}/filter`, { FilterState: filterState });
+};
+
+export const unassignTenantFromRoom = async (tenantId: string): Promise<void> => {
+  await api.patch(`/tenant/${tenantId}/unassign`);
 };
 
 export const fetchTransactions = async (filters: TransactionFilters): Promise<Transaction[]> => {

@@ -98,9 +98,9 @@ function shiftWeek(v: string, delta: number) {
 }
 
 // ─── DateInput ────────────────────────────────────────────────────────────────
-// Shows the date in "01-May-2026" format while keeping the native date picker.
-// A transparent <input type="date"> sits on top of the styled label so clicking
-// anywhere on the visible text opens the browser's native calendar.
+// Styled wrapper around a native date input. Shows the formatted date as a
+// read-only label; clicking it programmatically opens the picker via showPicker()
+// (Chrome/Firefox/Edge 99+) with a direct-click fallback for other browsers.
 
 interface DateInputProps {
     value: string | null;
@@ -109,22 +109,41 @@ interface DateInputProps {
 }
 
 function DateInput({ value, onChange, placeholder }: DateInputProps) {
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    const openPicker = () => {
+        const el = inputRef.current;
+        if (!el) return;
+        if (typeof (el as any).showPicker === "function") {
+            try { (el as any).showPicker(); } catch { el.focus(); }
+        } else {
+            el.focus();
+        }
+    };
+
     return (
-        <div className="relative h-7 min-w-[112px] cursor-pointer">
-            {/* Styled label — non-interactive, shown underneath */}
-            <div className="pointer-events-none absolute inset-0 flex items-center rounded-md border border-stripe-border bg-white px-2.5 text-xs font-medium">
-                {value
-                    ? <span className="text-stripe-text-primary">{fmtDDMMMYYYY(value)}</span>
-                    : <span className="text-stripe-text-secondary">{placeholder}</span>
-                }
-            </div>
-            {/* Transparent native input covers the full area to open the picker */}
+        <div className="relative">
+            {/* Styled button — full click target, no invisible element on top */}
+            <button
+                type="button"
+                onClick={openPicker}
+                className={cn(
+                    "flex h-7 min-w-[120px] items-center rounded-md border border-stripe-border bg-white px-2.5 text-xs font-medium transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-stripe-purple/40",
+                    value ? "text-stripe-text-primary" : "text-stripe-text-secondary"
+                )}
+            >
+                {value ? fmtDDMMMYYYY(value) : placeholder}
+            </button>
+            {/* Native input tucked out of the way — 1px, pointer-events-none,
+                only here so showPicker() has a real DOM node to act on */}
             <input
+                ref={inputRef}
                 type="date"
                 value={value ?? ""}
                 onChange={e => onChange(e.target.value || null)}
-                className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-                aria-label={placeholder}
+                tabIndex={-1}
+                aria-hidden="true"
+                className="pointer-events-none absolute left-0 top-0 h-px w-px overflow-hidden opacity-0"
             />
         </div>
     );
@@ -226,7 +245,7 @@ function DateFilterBar({ initialState, onFilterChange }: DateFilterBarProps) {
                 ))}
             </div>
 
-            {/* Month picker */}
+            {/* Month picker — chevron nav only (no native type="month" for cross-browser compat) */}
             {mode === "month" && (
                 <div className="flex items-center gap-1">
                     <Button
@@ -238,13 +257,9 @@ function DateFilterBar({ initialState, onFilterChange }: DateFilterBarProps) {
                     >
                         <ChevronLeft className="size-3.5" />
                     </Button>
-                    <input
-                        type="month"
-                        value={monthVal}
-                        onChange={e => e.target.value && setMonthVal(e.target.value)}
-                        className="h-7 rounded-md border border-stripe-border bg-white px-2 text-xs font-medium text-stripe-text-primary focus:outline-none focus:ring-2 focus:ring-stripe-purple/40"
-                        aria-label="Select month"
-                    />
+                    <span className="min-w-[88px] rounded-md border border-stripe-border bg-white px-2.5 py-1 text-center text-xs font-medium text-stripe-text-primary select-none">
+                        {monthLabel(monthVal)}
+                    </span>
                     <Button
                         variant="ghost"
                         size="icon"
@@ -254,13 +269,10 @@ function DateFilterBar({ initialState, onFilterChange }: DateFilterBarProps) {
                     >
                         <ChevronRight className="size-3.5" />
                     </Button>
-                    <span className="text-xs text-stripe-text-secondary hidden sm:inline">
-                        {monthLabel(monthVal)}
-                    </span>
                 </div>
             )}
 
-            {/* Week picker */}
+            {/* Week picker — chevron nav only (no native type="week" for cross-browser compat) */}
             {mode === "week" && (
                 <div className="flex items-center gap-1">
                     <Button
@@ -272,13 +284,12 @@ function DateFilterBar({ initialState, onFilterChange }: DateFilterBarProps) {
                     >
                         <ChevronLeft className="size-3.5" />
                     </Button>
-                    <input
-                        type="week"
-                        value={weekVal}
-                        onChange={e => e.target.value && setWeekVal(e.target.value)}
-                        className="h-7 rounded-md border border-stripe-border bg-white px-2 text-xs font-medium text-stripe-text-primary focus:outline-none focus:ring-2 focus:ring-stripe-purple/40"
-                        aria-label="Select week"
-                    />
+                    <span className="min-w-[180px] rounded-md border border-stripe-border bg-white px-2.5 py-1 text-center text-xs font-medium text-stripe-text-primary select-none hidden sm:inline-block">
+                        {weekLabel(weekVal)}
+                    </span>
+                    <span className="min-w-[80px] rounded-md border border-stripe-border bg-white px-2.5 py-1 text-center text-xs font-medium text-stripe-text-primary select-none sm:hidden">
+                        {weekVal}
+                    </span>
                     <Button
                         variant="ghost"
                         size="icon"
@@ -288,9 +299,6 @@ function DateFilterBar({ initialState, onFilterChange }: DateFilterBarProps) {
                     >
                         <ChevronRight className="size-3.5" />
                     </Button>
-                    <span className="text-xs text-stripe-text-secondary hidden sm:inline">
-                        {weekLabel(weekVal)}
-                    </span>
                 </div>
             )}
 

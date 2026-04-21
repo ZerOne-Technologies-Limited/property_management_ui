@@ -32,7 +32,7 @@ export function TopBar({ onToggleSidebar }: TopBarProps) {
       </button>
 
       {/* Brand */}
-      <span className="text-base font-semibold text-white sm:text-lg">ProptyMng</span>
+      <span className="text-base font-semibold text-white sm:text-lg">ProprtMng</span>
 
       <div className="flex-1" />
 

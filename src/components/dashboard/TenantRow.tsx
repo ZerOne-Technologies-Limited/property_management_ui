@@ -3,10 +3,11 @@ import type { Tenant } from "../../types";
 import { PaymentTimeline } from "./PaymentTimeline";
 import { AddPaymentDialog } from "./AddPaymentDialog";
 import { Button } from "../ui/button";
-import { User, MessageCircle, MoreVertical } from "lucide-react";
+import { User, MessageCircle, MoreVertical, LogOut, Loader2 } from "lucide-react";
 import { useAppStore } from "../../lib/store";
 import { useTransactions } from "../../hooks/useTransactions";
-import { Loader2 } from "lucide-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { unassignTenantFromRoom } from "../../api/axios";
 import { cn } from "../../lib/utils";
 
 interface TenantRowProps {
@@ -29,6 +30,16 @@ export function TenantRow({ tenant }: TenantRowProps) {
         () => payments.reduce((sum, p) => sum + p.amount, 0),
         [payments]
     );
+
+    // Unassign from room
+    const queryClient = useQueryClient();
+    const { mutate: doUnassign, isPending: unassigning } = useMutation({
+        mutationFn: () => unassignTenantFromRoom(tenant.id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['tenants'] });
+            queryClient.invalidateQueries({ queryKey: ['rooms'] });
+        },
+    });
 
     // Kebab menu state
     const [menuOpen, setMenuOpen] = useState(false);
@@ -127,7 +138,7 @@ export function TenantRow({ tenant }: TenantRowProps) {
                     </Button>
 
                     {menuOpen && (
-                        <div className="absolute right-0 top-full z-30 mt-1 w-36 rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
+                        <div className="absolute right-0 top-full z-30 mt-1 w-44 rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
                             <button
                                 className="w-full px-3 py-1.5 text-left text-xs text-gray-700 hover:bg-gray-50 transition-colors"
                                 onClick={() => {
@@ -145,6 +156,22 @@ export function TenantRow({ tenant }: TenantRowProps) {
                                 }}
                             >
                                 Tenant Profile
+                            </button>
+                            <div className="my-1 border-t border-gray-100" />
+                            <button
+                                className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
+                                disabled={unassigning}
+                                onClick={() => {
+                                    setMenuOpen(false);
+                                    doUnassign();
+                                }}
+                            >
+                                {unassigning ? (
+                                    <Loader2 className="size-3 animate-spin" />
+                                ) : (
+                                    <LogOut className="size-3" />
+                                )}
+                                Remove from room
                             </button>
                         </div>
                     )}

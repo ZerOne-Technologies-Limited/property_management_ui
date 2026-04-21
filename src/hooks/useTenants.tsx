@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { fetchTenants, registerTenant, updateTenant } from '../api/axios';
+import { fetchTenants, registerTenant, updateTenant, unassignTenantFromRoom } from '../api/axios';
 
 export function useTenants(propertyId?: string, roomId?: string) {
     const queryClient = useQueryClient();
@@ -29,6 +29,14 @@ export function useTenants(propertyId?: string, roomId?: string) {
         },
     });
 
+    const { mutateAsync: unassignFromRoom, isPending: isUnassigning } = useMutation({
+        mutationFn: (tenantId: string) => unassignTenantFromRoom(tenantId),
+        onSuccess: async () => {
+            await queryClient.refetchQueries({ queryKey: ['tenants'] });
+            await queryClient.refetchQueries({ queryKey: ['rooms'] });
+        },
+    });
+
     return {
         tenants,
         loading,
@@ -37,6 +45,8 @@ export function useTenants(propertyId?: string, roomId?: string) {
         isAddingTenant,
         updateTenant: updateTenantMutate,
         updateTenantAsync,
-        isUpdatingTenant
+        isUpdatingTenant,
+        unassignFromRoom,
+        isUnassigning,
     };
 }

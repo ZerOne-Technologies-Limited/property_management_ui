@@ -1,8 +1,9 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { Home, Receipt, User, Building2, X } from "lucide-react";
+import { Home, Receipt, User, Building2, X, Users, ChevronsUpDown, Search, Check } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { useProperties } from "../../hooks/useProperties";
 import { useAppStore } from "../../lib/store";
+import { useState, useRef, useEffect, useMemo } from "react";
 
 interface NavItem {
   label: string;
@@ -12,8 +13,142 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { label: "Home", path: "/", icon: Home },
+  { label: "Tenants", path: "/tenants", icon: Users },
   { label: "Transactions", path: "/transactions", icon: Receipt },
 ];
+
+// ─── PropertyCombobox ─────────────────────────────────────────────────────────
+
+interface PropertyComboboxProps {
+  properties: import("../../types").Property[];
+  loading: boolean;
+  value: string | null;
+  onChange: (id: string) => void;
+}
+
+function PropertyCombobox({ properties, loading, value, onChange }: PropertyComboboxProps) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const containerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const selected = properties.find(p => p.id === value);
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return properties;
+    return properties.filter(p => p.name.toLowerCase().includes(q));
+  }, [properties, query]);
+
+  // Close on outside click or Escape
+  useEffect(() => {
+    if (!open) return;
+    const handleClick = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+        setQuery("");
+      }
+    };
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") { setOpen(false); setQuery(""); }
+    };
+    document.addEventListener("mousedown", handleClick);
+    document.addEventListener("keydown", handleKey);
+    return () => {
+      document.removeEventListener("mousedown", handleClick);
+      document.removeEventListener("keydown", handleKey);
+    };
+  }, [open]);
+
+  // Focus search input when dropdown opens
+  useEffect(() => {
+    if (open) setTimeout(() => inputRef.current?.focus(), 50);
+  }, [open]);
+
+  const handleSelect = (id: string) => {
+    onChange(id);
+    setOpen(false);
+    setQuery("");
+  };
+
+  return (
+    <div ref={containerRef} className="relative">
+      {/* Trigger */}
+      <button
+        type="button"
+        disabled={loading}
+        onClick={() => setOpen(v => !v)}
+        className={cn(
+          "flex h-9 w-full items-center justify-between rounded-md border border-stripe-border bg-white px-3 text-sm font-medium transition-colors",
+          "focus:outline-none focus:ring-2 focus:ring-stripe-purple focus:ring-offset-1",
+          open ? "ring-2 ring-stripe-purple ring-offset-1" : "hover:bg-gray-50",
+          loading && "opacity-50 cursor-not-allowed"
+        )}
+      >
+        <span className={cn("truncate", selected ? "text-stripe-text-primary" : "text-stripe-text-secondary")}>
+          {loading ? "Loading…" : (selected?.name ?? "Select property")}
+        </span>
+        <ChevronsUpDown className="ml-2 size-3.5 shrink-0 text-stripe-text-secondary" />
+      </button>
+
+      {/* Dropdown */}
+      {open && (
+        <div className="absolute left-0 right-0 top-full z-50 mt-1 rounded-md border border-stripe-border bg-white shadow-lg">
+          {/* Search */}
+          <div className="flex items-center gap-2 border-b border-stripe-border px-3 py-2">
+            <Search className="size-3.5 shrink-0 text-stripe-text-secondary" />
+            <input
+              ref={inputRef}
+              type="text"
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              placeholder="Search properties…"
+              className="flex-1 bg-transparent text-sm text-stripe-text-primary placeholder:text-stripe-text-secondary focus:outline-none"
+            />
+            {query && (
+              <button
+                type="button"
+                onClick={() => setQuery("")}
+                className="text-stripe-text-secondary hover:text-stripe-text-primary"
+              >
+                <X className="size-3" />
+              </button>
+            )}
+          </div>
+
+          {/* Options */}
+          <ul className="max-h-52 overflow-y-auto py-1">
+            {filtered.length === 0 ? (
+              <li className="px-3 py-4 text-center text-xs text-stripe-text-secondary">
+                No properties match "{query}"
+              </li>
+            ) : (
+              filtered.map(p => (
+                <li key={p.id}>
+                  <button
+                    type="button"
+                    onClick={() => handleSelect(p.id)}
+                    className={cn(
+                      "flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors",
+                      p.id === value
+                        ? "bg-stripe-purple-light text-stripe-purple font-medium"
+                        : "text-stripe-text-primary hover:bg-stripe-sidebar"
+                    )}
+                  >
+                    <span className="flex-1 truncate">{p.name}</span>
+                    {p.id === value && <Check className="size-3.5 shrink-0" />}
+                  </button>
+                </li>
+              ))
+            )}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Sidebar ──────────────────────────────────────────────────────────────────
 
 interface SidebarProps {
   isOpen?: boolean;
@@ -47,7 +182,7 @@ export function Sidebar({ isOpen = true, onClose }: SidebarProps) {
       <div className="flex h-14 items-center justify-between border-b border-stripe-border px-4">
         <div className="flex items-center gap-2">
           <Building2 className="size-5 text-stripe-purple" />
-          <span className="text-base font-semibold text-stripe-text-primary">BHD</span>
+          <span className="text-base font-semibold text-stripe-text-primary">ProprtMng</span>
         </div>
 
         {/* Close button — mobile only */}
@@ -65,20 +200,15 @@ export function Sidebar({ isOpen = true, onClose }: SidebarProps) {
         <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-stripe-text-secondary">
           Property
         </label>
-        <select
-          className="h-9 w-full rounded-md border border-stripe-border bg-white px-3 text-sm font-medium text-stripe-text-primary focus:outline-none focus:ring-2 focus:ring-stripe-purple focus:ring-offset-1"
-          value={selectedPropertyId || ""}
-          onChange={(e) => {
-            setSelectedPropertyId(e.target.value);
-            onClose?.(); // auto-close on mobile after selection
+        <PropertyCombobox
+          properties={properties}
+          loading={loading}
+          value={selectedPropertyId}
+          onChange={(id) => {
+            setSelectedPropertyId(id);
+            onClose?.();
           }}
-          disabled={loading}
-        >
-          <option value="" disabled>Select Property</option>
-          {properties.map((prop) => (
-            <option key={prop.id} value={prop.id}>{prop.name}</option>
-          ))}
-        </select>
+        />
       </div>
 
       {/* Navigation */}

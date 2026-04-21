@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Loader2 } from "lucide-react";
+import { Plus, Loader2, Ban } from "lucide-react";
 import { Button } from "../ui/button";
 import {
     Dialog,
@@ -16,7 +16,7 @@ import { useTransactions } from "../../hooks/useTransactions";
 
 interface AddPaymentDialogProps {
     tenantId: string | number;
-    roomId: string | number;
+    roomId: string | number | null | undefined;
     propertyId: string | number;
     iconOnly?: boolean;
 }
@@ -26,9 +26,17 @@ export function AddPaymentDialog({ tenantId, roomId, propertyId, iconOnly = fals
     const [open, setOpen] = useState(false);
     const [amount, setAmount] = useState<number | string>("");
 
+    const hasRoom = roomId != null && Number(roomId) !== 0;
+
+    const handleOpenChange = (val: boolean) => {
+        if (val && !hasRoom) return; // block opening when no room
+        setOpen(val);
+        if (!val) setAmount("");
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!amount) return;
+        if (!amount || !hasRoom) return;
 
         try {
             await addTransaction({
@@ -44,23 +52,36 @@ export function AddPaymentDialog({ tenantId, roomId, propertyId, iconOnly = fals
         }
     };
 
+    const disabledTitle = "Assign this tenant to a room before adding a payment";
+
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={handleOpenChange}>
             <DialogTrigger asChild>
                 {iconOnly ? (
                     <Button
                         variant="ghost"
                         size="icon"
-                        className="h-7 w-7 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                        title="Add payment"
+                        disabled={!hasRoom}
+                        className={
+                            hasRoom
+                                ? "h-7 w-7 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                : "h-7 w-7 text-gray-300 cursor-not-allowed"
+                        }
+                        title={hasRoom ? "Add payment" : disabledTitle}
                     >
-                        <Plus className="size-3.5" />
+                        {hasRoom ? <Plus className="size-3.5" /> : <Ban className="size-3.5" />}
                     </Button>
                 ) : (
                     <Button
                         variant="ghost"
                         size="sm"
-                        className="text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 h-7 px-2 gap-1"
+                        disabled={!hasRoom}
+                        title={!hasRoom ? disabledTitle : undefined}
+                        className={
+                            hasRoom
+                                ? "text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 h-7 px-2 gap-1"
+                                : "text-xs text-gray-300 h-7 px-2 gap-1 cursor-not-allowed"
+                        }
                     >
                         <Plus className="size-3" />
                         Add Payment
