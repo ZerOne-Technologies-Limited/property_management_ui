@@ -1,4 +1,4 @@
-import { createFileRoute, useRouter } from '@tanstack/react-router'
+import { createFileRoute, useNavigate, useRouter } from '@tanstack/react-router'
 import { useState } from 'react'
 import z from 'zod'
 import type { loginModel } from '../types/auth'
@@ -29,6 +29,7 @@ const PROPERTY_TYPES: { value: PropertyType; label: string }[] = [
 function RouteComponent() {
   const { login } = useAppStore()
   const navigate = Route.useNavigate()
+  const globalNavigate = useNavigate()
   const search = Route.useSearch()
   const router = useRouter()
 
@@ -363,6 +364,17 @@ function RouteComponent() {
               )}
             </div>
           </div>
+          {/* Demo link */}
+          <p className="mt-4 text-center text-xs text-stripe-text-secondary">
+            Want to explore first?{' '}
+            <button
+              type="button"
+              onClick={() => globalNavigate({ to: '/demo' })}
+              className="font-medium text-[#635BFF] hover:underline"
+            >
+              View live demo →
+            </button>
+          </p>
         </div>
         </div>{/* end z-10 content wrapper */}
       </div>
