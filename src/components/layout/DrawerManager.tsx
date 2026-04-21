@@ -1,12 +1,14 @@
 import { useAppStore } from "../../lib/store";
-import { X } from "lucide-react";
+import { X, Printer, Building2, BedDouble, User, Calendar, FileText, Hash } from "lucide-react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import type { Transaction } from "../../types";
 import { useTenants } from "../../hooks/useTenants";
 import { useRooms } from "../../hooks/useRooms";
-import { useState } from "react";
+import { useProperties } from "../../hooks/useProperties";
+import { useState, useMemo } from "react";
+import { cn } from "../../lib/utils";
 
 // Placeholder drawer content components
 function RoomDrawerContent({ data }: { data: any }) {
@@ -265,49 +267,202 @@ function TenantDrawerContent({ data }: { data: any }) {
     )
 }
 
-function PaymentDrawerContent({ data }: { data: any }) {
-    if (!data) return null;
-    return (
-        <div className="space-y-6">
-            <div>
-                <h3 className="text-lg font-bold">Transaction {data.id}</h3>
-                <p className="text-sm text-gray-500">Payment Details</p>
-            </div>
-            <div className="rounded-lg bg-gray-50 p-4">
-                <p className="text-sm">Amount: ${data.amount}</p>
-                <p className="text-sm">Note: {data.notes}</p>
-            </div>
-        </div>
-    )
+// ─── Shared helpers ───────────────────────────────────────────────────────────
+
+const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+function fmtDate(iso: string) {
+    const d = new Date(iso);
+    return `${String(d.getDate()).padStart(2,"0")}-${MONTHS[d.getMonth()]}-${d.getFullYear()}`;
+}
+function fmtTime(iso: string) {
+    return new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+function fmtK(n: number) {
+    return `K${n.toLocaleString()}`;
 }
 
-function PaymentHistoryDrawerContent({ data }: { data: { tenantId: string, payments: Transaction[] } }) {
-    if (!data || !data.payments) return null;
+function InfoRow({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string }) {
+    return (
+        <div className="flex items-center gap-3 border-b border-stripe-border py-2.5 last:border-0">
+            <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-stripe-sidebar">
+                <Icon className="size-3.5 text-stripe-text-secondary" />
+            </div>
+            <span className="w-20 shrink-0 text-xs font-medium uppercase tracking-wider text-stripe-text-secondary">{label}</span>
+            <span className="flex-1 truncate text-sm font-medium text-stripe-text-primary">{value || "—"}</span>
+        </div>
+    );
+}
+
+function printSingleReceipt(tx: Transaction, tenant: string, room: string, property: string) {
+    const w = window.open("", "_blank", "width=480,height=680");
+    if (!w) return;
+    w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Receipt #${tx.id}</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;padding:36px 40px;color:#111;max-width:420px;margin:0 auto}
+.brand{font-size:18px;font-weight:700;color:#635BFF}.tagline{font-size:11px;color:#9ca3af;margin-bottom:24px}
+.heading{text-align:center;font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#6b7280;margin-bottom:18px}
+hr{border:none;border-top:1px dashed #d1d5db;margin:14px 0}.row{display:flex;justify-content:space-between;margin-bottom:8px}
+.lbl{font-size:12px;color:#6b7280}.val{font-size:12px;font-weight:500;text-align:right}
+.amount-row .lbl{font-size:14px;font-weight:600;color:#111}.amount-row .val{font-size:22px;font-weight:700;color:#059669}
+.mono{font-family:monospace;font-size:11px;color:#9ca3af}.footer{margin-top:24px;text-align:center;font-size:11px;color:#9ca3af;border-top:1px solid #f3f4f6;padding-top:12px}
+@media print{.btn{display:none}}</style></head><body>
+<div class="brand">property.zapps</div><div class="tagline">Official Payment Receipt</div>
+<div class="heading">Payment Receipt</div>
+<div class="row"><span class="lbl">Receipt No.</span><span class="val mono">#${tx.id}</span></div>
+<div class="row"><span class="lbl">Date</span><span class="val">${fmtDate(tx.created_at)} ${fmtTime(tx.created_at)}</span></div>
+<hr/><div class="row"><span class="lbl">Tenant</span><span class="val">${tenant}</span></div>
+<div class="row"><span class="lbl">Property</span><span class="val">${property}</span></div>
+<div class="row"><span class="lbl">Room</span><span class="val">${room}</span></div>
+${tx.notes ? `<div class="row"><span class="lbl">Notes</span><span class="val">${tx.notes}</span></div>` : ""}
+<hr/><div class="row amount-row"><span class="lbl">Amount Paid</span><span class="val">${fmtK(tx.amount)}</span></div>
+<div class="footer">Thank you for your payment · property.zapps</div>
+<br/><div style="text-align:center"><button class="btn" onclick="window.print();window.close()" style="padding:8px 20px;background:#635BFF;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px">🖨 Print</button></div>
+</body></html>`);
+    w.document.close();
+    w.focus();
+    setTimeout(() => { try { w.print(); } catch { /**/ } }, 400);
+}
+
+// ─── Payment info drawer ──────────────────────────────────────────────────────
+
+function PaymentDrawerContent({ data }: { data: Transaction }) {
+    const { properties } = useProperties();
+    const { rooms }      = useRooms(data?.property_id || "");
+    const { tenants }    = useTenants(data?.property_id, data?.room_id || undefined);
+
+    if (!data) return null;
+
+    const property = properties.find(p => p.id === data.property_id)?.name ?? `#${data.property_id}`;
+    const room     = rooms.find(r => r.id === data.room_id)?.name     ?? `#${data.room_id}`;
+    const tenant   = useMemo(() => {
+        const t = tenants.find(t => t.id === data.tenant_id);
+        return t ? `${t.first_name} ${t.last_name}` : `#${data.tenant_id}`;
+    }, [tenants, data.tenant_id]);
 
     return (
-        <div className="space-y-6">
-            <div>
-                <h3 className="text-lg font-bold">Payment History</h3>
-                <p className="text-sm text-gray-500">Full Record ({data.payments.length})</p>
+        <div className="flex flex-col gap-0">
+            {/* Amount hero */}
+            <div className="flex items-end justify-between border-b border-stripe-border bg-stripe-sidebar px-6 py-5">
+                <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-widest text-stripe-text-secondary">Amount Paid</p>
+                    <p className="mt-1 font-mono text-3xl font-bold text-emerald-700">{fmtK(data.amount)}</p>
+                </div>
+                <div className="text-right">
+                    <p className="font-mono text-xs text-stripe-text-secondary">#{data.id}</p>
+                    <p className="text-xs text-stripe-text-secondary">{fmtDate(data.created_at)}</p>
+                    <p className="text-xs text-stripe-text-secondary">{fmtTime(data.created_at)}</p>
+                </div>
             </div>
 
-            <div className="space-y-2">
-                {data.payments.map((p) => (
-                    <div key={p.id} className="flex justify-between items-center p-3 bg-gray-50 rounded border border-gray-100">
-                        <div>
-                            <p className="font-semibold text-sm">${p.amount}</p>
-                            <p className="text-xs text-gray-500">{new Date(p.created_at).toLocaleDateString()}</p>
+            {/* Details */}
+            <div className="px-6 py-2">
+                <InfoRow icon={Building2} label="Property" value={property} />
+                <InfoRow icon={BedDouble} label="Room"     value={room} />
+                <InfoRow icon={User}      label="Tenant"   value={tenant} />
+                <InfoRow icon={Calendar}  label="Date"     value={`${fmtDate(data.created_at)} · ${fmtTime(data.created_at)}`} />
+                <InfoRow icon={Hash}      label="Ref"      value={`#${data.id}`} />
+                {data.notes && <InfoRow icon={FileText} label="Notes" value={data.notes} />}
+            </div>
+
+            {/* Actions */}
+            <div className="mt-2 border-t border-stripe-border px-6 py-4">
+                <button
+                    onClick={() => printSingleReceipt(data, tenant, room, property)}
+                    className="flex w-full items-center justify-center gap-2 rounded-md border border-stripe-border bg-white py-2 text-sm font-medium text-stripe-text-primary hover:bg-stripe-sidebar transition-colors"
+                >
+                    <Printer className="size-4" /> Print Receipt
+                </button>
+            </div>
+        </div>
+    );
+}
+
+// ─── Payment history drawer ───────────────────────────────────────────────────
+
+function PaymentHistoryDrawerContent({ data }: { data: { tenantId: string; payments: Transaction[] } }) {
+    if (!data?.payments) return null;
+
+    const sorted = useMemo(
+        () => [...data.payments].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()),
+        [data.payments]
+    );
+
+    const total = useMemo(() => sorted.reduce((s, p) => s + p.amount, 0), [sorted]);
+    const { openDrawer } = useAppStore();
+
+    function exportCSV() {
+        const rows = sorted.map(p => [fmtDate(p.created_at), fmtTime(p.created_at), p.id, p.amount, `"${(p.notes ?? "").replace(/"/g, '""')}"`]);
+        const csv = [["Date","Time","Ref #","Amount","Notes"], ...rows].map(r => r.join(",")).join("\n");
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+        a.download = `payments-${data.tenantId}.csv`;
+        a.click();
+    }
+
+    return (
+        <div className="flex flex-col">
+            {/* Summary bar */}
+            <div className="flex items-end justify-between border-b border-stripe-border bg-stripe-sidebar px-6 py-4">
+                <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-widest text-stripe-text-secondary">Total Collected</p>
+                    <p className="mt-1 font-mono text-2xl font-bold text-emerald-700">{fmtK(total)}</p>
+                </div>
+                <span className="rounded-md border border-stripe-border bg-white px-2.5 py-1 font-mono text-xs font-semibold text-stripe-text-secondary">
+                    {sorted.length} payment{sorted.length !== 1 ? "s" : ""}
+                </span>
+            </div>
+
+            {/* Column headers */}
+            <div className="grid grid-cols-[1fr_auto_auto] gap-3 border-b border-stripe-border bg-stripe-sidebar px-6 py-2 text-[10px] font-semibold uppercase tracking-wider text-stripe-text-secondary">
+                <span>Date</span>
+                <span className="text-right">Ref #</span>
+                <span className="text-right">Amount</span>
+            </div>
+
+            {/* Rows */}
+            <div className="flex-1 overflow-y-auto divide-y divide-gray-100">
+                {sorted.length === 0 ? (
+                    <div className="py-12 text-center text-sm text-stripe-text-secondary">No payments recorded.</div>
+                ) : sorted.map(p => (
+                    <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => openDrawer("PAYMENT", p)}
+                        className="grid w-full grid-cols-[1fr_auto_auto] items-center gap-3 px-6 py-3 text-left transition-colors hover:bg-stripe-sidebar"
+                    >
+                        {/* Date + notes */}
+                        <div className="min-w-0">
+                            <p className="text-sm font-medium text-stripe-text-primary">{fmtDate(p.created_at)}</p>
+                            <p className="text-[11px] text-stripe-text-secondary">{fmtTime(p.created_at)}{p.notes ? ` · ${p.notes}` : ""}</p>
                         </div>
-                        <div className="text-xs text-gray-400 font-mono">
-                            {p.id}
-                        </div>
-                    </div>
+
+                        {/* Ref */}
+                        <span className="font-mono text-xs text-stripe-text-secondary">#{p.id}</span>
+
+                        {/* Amount pill */}
+                        <span className={cn(
+                            "inline-flex h-7 items-center rounded-md border px-2.5 font-mono text-xs font-semibold tabular-nums",
+                            "border-emerald-200 bg-emerald-50 text-emerald-700"
+                        )}>
+                            {fmtK(p.amount)}
+                        </span>
+                    </button>
                 ))}
             </div>
 
-            <Button className="w-full">Export CSV</Button>
+            {/* Footer */}
+            {sorted.length > 0 && (
+                <div className="border-t border-stripe-border px-6 py-4">
+                    <button
+                        onClick={exportCSV}
+                        className="flex w-full items-center justify-center gap-2 rounded-md border border-stripe-border bg-white py-2 text-sm font-medium text-stripe-text-primary hover:bg-stripe-sidebar transition-colors"
+                    >
+                        Export CSV
+                    </button>
+                </div>
+            )}
         </div>
-    )
+    );
 }
 
 export function DrawerManager() {
@@ -342,7 +497,10 @@ export function DrawerManager() {
                     </div>
 
                     {/* Content */}
-                    <div className="flex-1 overflow-y-auto p-6">
+                    <div className={cn(
+                        "flex-1 overflow-y-auto",
+                        (activeDrawer.type === 'PAYMENT' || activeDrawer.type === 'PAYMENT_HISTORY') ? "" : "p-6"
+                    )}>
                         {activeDrawer.type === 'ROOM' && <RoomDrawerContent data={activeDrawer.dataOrId} />}
                         {activeDrawer.type === 'TENANT' && <TenantDrawerContent data={activeDrawer.dataOrId} />}
                         {activeDrawer.type === 'PAYMENT' && <PaymentDrawerContent data={activeDrawer.dataOrId} />}
