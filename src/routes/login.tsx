@@ -6,17 +6,7 @@ import type { PropertyType } from '../types'
 import { loginUser, registerWithProperty } from '../api/axios'
 import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
-import {
-  AlertCircle,
-  Loader2,
-  Building2,
-  Eye,
-  EyeOff,
-  ShieldCheck,
-  BarChart3,
-  Users,
-  CheckCircle2,
-} from 'lucide-react'
+import { AlertCircle, Loader2, Building2, Eye, EyeOff } from 'lucide-react'
 import { useAppStore } from '../lib/store'
 import { cn } from '../lib/utils'
 
@@ -35,12 +25,6 @@ const PROPERTY_TYPES: { value: PropertyType; label: string }[] = [
   { value: 'Hostel', label: 'Hostel' },
 ]
 
-const FEATURES = [
-  { icon: Building2, text: 'Manage multiple properties from one place' },
-  { icon: Users, text: 'Track tenants, rooms and payments with ease' },
-  { icon: BarChart3, text: 'Get financial insights at a glance' },
-  { icon: ShieldCheck, text: 'Role-based access for your team' },
-]
 
 function RouteComponent() {
   const { login } = useAppStore()
@@ -139,24 +123,26 @@ function RouteComponent() {
           <span className="text-lg font-semibold text-white">property.zapps</span>
         </div>
 
-        {/* Hero copy */}
-        <div>
-          <h2 className="text-4xl font-bold leading-tight text-white xl:text-5xl">
-            Property management,<br />
-            <span style={{ color: '#635BFF' }}>simplified.</span>
-          </h2>
-          <p className="mt-4 text-base text-slate-400 leading-relaxed max-w-sm">
-            Everything you need to run your boarding houses, hostels, and lodges — in one clean dashboard.
-          </p>
+        {/* Hero copy + preview image */}
+        <div className="flex flex-col gap-8">
+          <div>
+            <h2 className="text-4xl font-bold leading-tight text-white xl:text-5xl">
+              Property management,<br />
+              <span style={{ color: '#635BFF' }}>simplified.</span>
+            </h2>
+            <p className="mt-4 text-base text-slate-400 leading-relaxed max-w-sm">
+              Everything you need to run your boarding houses, hostels, and lodges — in one clean dashboard.
+            </p>
+          </div>
 
-          <ul className="mt-10 space-y-4">
-            {FEATURES.map(({ text }) => (
-              <li key={text} className="flex items-center gap-3">
-                <CheckCircle2 className="size-5 shrink-0" style={{ color: '#635BFF' }} />
-                <span className="text-sm text-slate-300">{text}</span>
-              </li>
-            ))}
-          </ul>
+          {/* Dashboard preview */}
+          <div className="relative w-full">
+            <img
+              src="/dashboard-preview.png"
+              alt="Dashboard preview"
+              className="w-full rounded-xl object-contain drop-shadow-2xl"
+            />
+          </div>
         </div>
 
         {/* Footer */}
