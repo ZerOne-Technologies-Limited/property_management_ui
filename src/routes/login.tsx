@@ -8,7 +8,7 @@ import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
 import { AlertCircle, Loader2, Building2, Eye, EyeOff } from 'lucide-react'
 import { useAppStore } from '../lib/store'
-import { cn } from '../lib/utils'
+import { cn, parseApiError } from '../lib/utils'
 
 export const Route = createFileRoute('/login')({
   component: RouteComponent,
@@ -23,6 +23,7 @@ const PROPERTY_TYPES: { value: PropertyType; label: string }[] = [
   { value: 'Lodge', label: 'Lodge' },
   { value: 'Hotel', label: 'Hotel' },
   { value: 'Hostel', label: 'Hostel' },
+  { value: 'House', label: 'House' },
 ]
 
 
@@ -95,13 +96,8 @@ function RouteComponent() {
       login(response, 'Manager')
       await router.invalidate()
       navigate({ to: '/' })
-    } catch (err: any) {
-      const msg =
-        err?.response?.data?.message ||
-        err?.response?.data?.Message ||
-        err?.response?.data?.errors?.[0]?.message ||
-        'Registration failed. The phone number may already be registered.'
-      setRegError(msg)
+    } catch (err) {
+      setRegError(parseApiError(err, 'Registration failed. Please check your details and try again.'))
     } finally {
       setRegLoading(false)
     }

@@ -36,7 +36,7 @@ function fmtK(n: number) {
 
 // ─── Receipt printer ─────────────────────────────────────────────────────────
 
-function printReceipt(tx: Transaction, tenant: string, room: string, property: string) {
+function printReceipt(tx: Transaction, tenant: string, room: string, property: string, roomLabel = 'Room') {
   const w = window.open('', '_blank', 'width=480,height=700')
   if (!w) return
   w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8">
@@ -65,7 +65,7 @@ function printReceipt(tx: Transaction, tenant: string, room: string, property: s
 <hr/>
 <div class="row"><span class="lbl">Tenant</span><span class="val">${tenant}</span></div>
 <div class="row"><span class="lbl">Property</span><span class="val">${property}</span></div>
-<div class="row"><span class="lbl">Room</span><span class="val">${room}</span></div>
+<div class="row"><span class="lbl">${roomLabel}</span><span class="val">${room}</span></div>
 ${tx.notes ? `<div class="row"><span class="lbl">Notes</span><span class="val">${tx.notes}</span></div>` : ''}
 <hr/>
 <div class="row amount-row"><span class="lbl">Amount Paid</span><span class="val">${fmtK(tx.amount)}</span></div>
@@ -88,6 +88,7 @@ function printAllReceipts(
   roomMap: Record<string,string>,
   propertyMap: Record<string,string>,
   filterLabel: string,
+  roomLabel = 'Room',
 ) {
   const rows = transactions.map(tx => `
     <tr>
@@ -126,7 +127,7 @@ function printAllReceipts(
 <div class="meta">Transactions Report${filterLabel ? ' · ' + filterLabel : ''} · ${transactions.length} records</div>
 <table>
   <thead><tr>
-    <th>Date</th><th>Ref #</th><th>Tenant</th><th>Property</th><th>Room</th><th>Notes</th><th>Amount</th>
+    <th>Date</th><th>Ref #</th><th>Tenant</th><th>Property</th><th>${roomLabel}</th><th>Notes</th><th>Amount</th>
   </tr></thead>
   <tbody>${rows}
     <tr class="total-row">
@@ -152,8 +153,9 @@ function exportCSV(
   tenantMap: Record<string,string>,
   roomMap: Record<string,string>,
   propertyMap: Record<string,string>,
+  roomLabel = 'Room',
 ) {
-  const headers = ['Date','Time','Ref #','Tenant','Property','Room','Notes','Amount']
+  const headers = ['Date','Time','Ref #','Tenant','Property', roomLabel,'Notes','Amount']
   const rows = transactions.map(tx => [
     fmtDate(tx.created_at),
     fmtTime(tx.created_at),
@@ -226,10 +228,17 @@ function TransactionsPage() {
   const [filtersOpen, setFiltersOpen] = useState(true)
   const [sortCol, setSortCol] = useState<'date' | 'amount'>('date')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
+  // "Assigned only" tenant toggle — when true, only show currently-assigned tenants in dropdown
+  const [assignedOnly, setAssignedOnly] = useState(false)
 
   const { properties } = useProperties()
   const { rooms } = useRooms(form.propertyId)
-  const { tenants } = useTenants(form.propertyId || undefined, form.roomId || undefined)
+  // Always fetch ALL tenants for the selected property (no room filter here),
+  // so past/unassigned tenants are visible in the dropdown
+  const { tenants } = useTenants(form.propertyId || undefined)
+
+  // "Room" vs "Unit" for the currently selected property
+  const roomLabel = (properties.find(p => p.id === form.propertyId)?.type === 'House') ? 'Unit' : 'Room'
 
   // Name lookup maps
   const propertyMap = useMemo(() =>
@@ -239,9 +248,20 @@ function TransactionsPage() {
   const tenantMap = useMemo(() =>
     Object.fromEntries(tenants.map(t => [t.id, `${t.first_name} ${t.last_name}`])), [tenants])
 
-  const filteredTenants = tenants.filter(t =>
-    `${t.first_name} ${t.last_name}`.toLowerCase().includes(tenantSearch.toLowerCase())
-  )
+  const filteredTenants = useMemo(() => {
+    const q = tenantSearch.toLowerCase()
+    return tenants.filter(t => {
+      const nameMatch = `${t.first_name} ${t.last_name}`.toLowerCase().includes(q)
+      if (!nameMatch) return false
+      if (assignedOnly) {
+        // If a specific room is selected, only show tenants currently in that room
+        if (form.roomId) return t.room_id === form.roomId
+        // Otherwise show any currently-assigned tenant
+        return t.room_id !== null
+      }
+      return true
+    })
+  }, [tenants, tenantSearch, assignedOnly, form.roomId])
 
   const errors: string[] = []
   if (form.minAmount && form.maxAmount && Number(form.minAmount) > Number(form.maxAmount))
@@ -263,6 +283,7 @@ function TransactionsPage() {
     setForm(emptyForm)
     setDebouncedFilters({})
     setTenantSearch('')
+    setAssignedOnly(false)
   }
 
   useEffect(() => {
@@ -341,7 +362,7 @@ function TransactionsPage() {
                   variant="outline"
                   size="sm"
                   className="gap-1.5 text-xs h-8"
-                  onClick={() => exportCSV(transactions, tenantMap, roomMap, propertyMap)}
+                  onClick={() => exportCSV(transactions, tenantMap, roomMap, propertyMap, roomLabel)}
                 >
                   <Download className="size-3.5" />
                   <span className="hidden sm:inline">Export CSV</span>
@@ -350,7 +371,7 @@ function TransactionsPage() {
                   variant="outline"
                   size="sm"
                   className="gap-1.5 text-xs h-8"
-                  onClick={() => printAllReceipts(transactions, tenantMap, roomMap, propertyMap, filterLabel)}
+                  onClick={() => printAllReceipts(transactions, tenantMap, roomMap, propertyMap, filterLabel, roomLabel)}
                 >
                   <Printer className="size-3.5" />
                   <span className="hidden sm:inline">Print All</span>
@@ -390,28 +411,45 @@ function TransactionsPage() {
                 </select>
               </div>
 
-              {/* Room */}
+              {/* Room / Unit */}
               <div className="space-y-1">
-                <label className="text-xs font-medium text-stripe-text-secondary">Room</label>
+                <label className="text-xs font-medium text-stripe-text-secondary">{roomLabel}</label>
                 <select
                   className="h-9 w-full rounded-md border border-gray-200 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-stripe-purple/40 disabled:opacity-50"
                   value={form.roomId}
                   onChange={e => handleRoomChange(e.target.value)}
                   disabled={!form.propertyId}
                 >
-                  <option value="">All Rooms</option>
+                  <option value="">All {roomLabel}s</option>
                   {rooms.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
                 </select>
               </div>
 
               {/* Tenant */}
               <div className="space-y-1 relative">
-                <label className="text-xs font-medium text-stripe-text-secondary">Tenant</label>
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-medium text-stripe-text-secondary">Tenant</label>
+                  {form.propertyId && (
+                    <button
+                      type="button"
+                      onClick={() => { setAssignedOnly(v => !v); setForm(p => ({ ...p, tenantId: '' })); setTenantSearch('') }}
+                      className={cn(
+                        'text-[10px] font-medium px-1.5 py-0.5 rounded-full border transition-colors',
+                        assignedOnly
+                          ? 'border-stripe-purple/40 bg-stripe-purple/10 text-stripe-purple'
+                          : 'border-gray-200 bg-white text-gray-400 hover:text-gray-600'
+                      )}
+                    >
+                      {assignedOnly ? 'Assigned only' : 'All tenants'}
+                    </button>
+                  )}
+                </div>
                 <div className="relative">
                   <Search className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-gray-400" />
                   <input
                     type="text"
-                    placeholder="Search tenant…"
+                    placeholder={form.propertyId ? 'Search tenant…' : 'Select a property first'}
+                    disabled={!form.propertyId}
                     value={tenantSearch}
                     onChange={e => {
                       setTenantSearch(e.target.value)
@@ -420,7 +458,7 @@ function TransactionsPage() {
                     }}
                     onFocus={() => !form.tenantId && setShowTenantDrop(true)}
                     onBlur={() => setTimeout(() => setShowTenantDrop(false), 150)}
-                    className="h-9 w-full rounded-md border border-gray-200 bg-white pl-8 pr-7 text-sm focus:outline-none focus:ring-2 focus:ring-stripe-purple/40"
+                    className="h-9 w-full rounded-md border border-gray-200 bg-white pl-8 pr-7 text-sm focus:outline-none focus:ring-2 focus:ring-stripe-purple/40 disabled:opacity-50"
                   />
                   {form.tenantId && (
                     <button className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
@@ -430,7 +468,7 @@ function TransactionsPage() {
                   )}
                 </div>
                 {showTenantDrop && !form.tenantId && filteredTenants.length > 0 && (
-                  <div className="absolute z-20 left-0 right-0 top-full mt-1 max-h-40 overflow-y-auto rounded-md border border-gray-200 bg-white shadow-md">
+                  <div className="absolute z-20 left-0 right-0 top-full mt-1 max-h-48 overflow-y-auto rounded-md border border-gray-200 bg-white shadow-md">
                     {filteredTenants.map(t => (
                       <button key={t.id} className="w-full px-3 py-2 text-left text-sm hover:bg-stripe-sidebar transition-colors"
                         onMouseDown={e => {
@@ -439,8 +477,11 @@ function TransactionsPage() {
                           setTenantSearch(`${t.first_name} ${t.last_name}`)
                           setShowTenantDrop(false)
                         }}>
-                        {t.first_name} {t.last_name}
-                        {t.whatsapp_number && <span className="ml-2 text-xs text-gray-400">{t.whatsapp_number}</span>}
+                        <span className="font-medium">{t.first_name} {t.last_name}</span>
+                        {t.room_id
+                          ? <span className="ml-2 text-[10px] text-gray-400">{roomMap[t.room_id] ?? roomLabel}</span>
+                          : <span className="ml-2 text-[10px] font-medium text-amber-500">Unassigned</span>
+                        }
                       </button>
                     ))}
                   </div>
@@ -522,7 +563,7 @@ function TransactionsPage() {
           <div className="flex flex-col items-center justify-center py-20 text-gray-400">
             <Filter className="mb-3 size-10 opacity-30" />
             <p className="text-sm font-medium">Apply a filter to load transactions</p>
-            <p className="mt-1 text-xs">Select a property, date range, tenant, or room above</p>
+            <p className="mt-1 text-xs">Select a property, date range, tenant, or {roomLabel.toLowerCase()} above</p>
           </div>
         ) : loading ? (
           <div className="flex flex-col gap-2 p-4">
@@ -553,7 +594,7 @@ function TransactionsPage() {
                   </th>
                   <th className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-stripe-text-secondary">Ref #</th>
                   <th className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-stripe-text-secondary">Tenant</th>
-                  <th className="hidden px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-stripe-text-secondary sm:table-cell">Property / Room</th>
+                  <th className="hidden px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-stripe-text-secondary sm:table-cell">Property / {roomLabel}</th>
                   <th className="hidden px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-stripe-text-secondary lg:table-cell">Notes</th>
                   <th className="px-4 py-2.5 text-right">
                     <button className="flex items-center ml-auto text-xs font-semibold uppercase tracking-wider text-stripe-text-secondary hover:text-stripe-text-primary"
@@ -612,7 +653,7 @@ function TransactionsPage() {
                       {/* Print receipt */}
                       <td className="px-4 py-3 text-right">
                         <button
-                          onClick={() => printReceipt(tx, tenantName, roomName, propName)}
+                          onClick={() => printReceipt(tx, tenantName, roomName, propName, roomLabel)}
                           className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-stripe-text-secondary transition-colors hover:bg-stripe-purple/10 hover:text-stripe-purple"
                           title="Print receipt"
                         >

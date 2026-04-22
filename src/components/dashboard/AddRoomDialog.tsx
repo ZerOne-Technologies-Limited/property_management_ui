@@ -15,7 +15,7 @@ import { Label } from "../ui/label";
 import { useRooms } from "../../hooks/useRooms";
 import { useAppStore } from "../../lib/store";
 
-export function AddRoomDialog() {
+export function AddRoomDialog({ label = 'Room' }: { label?: string }) {
     const { selectedPropertyId } = useAppStore();
     const { addRoom, isAddingRoom } = useRooms(selectedPropertyId || "");
     const [open, setOpen] = useState(false);
@@ -53,14 +53,14 @@ export function AddRoomDialog() {
             <DialogTrigger asChild>
                 <Button size="sm" className="gap-3 m-2" disabled={!selectedPropertyId}>
                     <Plus className="size-4" />
-                    Add Room
+                    Add {label}
                 </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>Add New Room</DialogTitle>
+                    <DialogTitle>Add New {label}</DialogTitle>
                     <DialogDescription>
-                        Create a new room in the selected property.
+                        Create a new {label.toLowerCase()} in the selected property.
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit}>
@@ -127,7 +127,7 @@ export function AddRoomDialog() {
                     <DialogFooter>
                         <Button type="submit" disabled={isAddingRoom}>
                             {isAddingRoom && <Loader2 className="mr-2 size-4 animate-spin" />}
-                            Save changes
+                            Add {label}
                         </Button>
                     </DialogFooter>
                 </form>

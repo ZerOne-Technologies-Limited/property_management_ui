@@ -82,10 +82,11 @@ export function AddPropertyDialog() {
                                 className="col-span-3 h-9 rounded-md border border-gray-200 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 required
                             >
-                                <option value="BoardingHouse">BoardingHouse</option>
+                                <option value="BoardingHouse">Boarding House</option>
                                 <option value="Lodge">Lodge</option>
                                 <option value="Hotel">Hotel</option>
                                 <option value="Hostel">Hostel</option>
+                                <option value="House">House</option>
                             </select>
                         </div>
                     </div>

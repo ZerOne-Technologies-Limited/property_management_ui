@@ -9,7 +9,7 @@ import {
   fetchPropertyUsers, addPropertyUser, updatePropertyUserRole, removePropertyUser,
 } from '../api/axios'
 import { useAppStore } from '../lib/store'
-import { cn } from '../lib/utils'
+import { cn, parseApiError } from '../lib/utils'
 import type { PropertyUser, PropertyUserRole } from '../types'
 
 export const Route = createFileRoute('/property-users')({
@@ -141,12 +141,8 @@ function AddUserDialog({
       queryClient.invalidateQueries({ queryKey: ['propertyUsers', propertyId] })
       onClose()
     },
-    onError: (err: any) => {
-      setError(
-        err?.response?.data?.message ||
-        err?.response?.data?.Message ||
-        'Could not add user. Check the phone number.'
-      )
+    onError: (err) => {
+      setError(parseApiError(err, 'Could not add user. Check the phone number and try again.'))
     },
   })
 

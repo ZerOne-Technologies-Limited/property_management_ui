@@ -10,9 +10,10 @@ import { AddTenantDialog } from "./AddTenantDialog";
 interface RoomRowProps {
     room: Room;
     searchQuery?: string;
+    label?: string;
 }
 
-export function RoomRow({ room, searchQuery = "" }: RoomRowProps) {
+export function RoomRow({ room, searchQuery = "", label = "Room" }: RoomRowProps) {
     const [isExpanded, setIsExpanded] = useState(true);
     const { openDrawer } = useAppStore();
 
@@ -68,7 +69,7 @@ export function RoomRow({ room, searchQuery = "" }: RoomRowProps) {
                         </div>
                         {/* Occupancy shown inline on mobile */}
                         <p className="text-[10px] text-gray-400 sm:hidden">
-                            {occupiedCount}/{room.maximum_capacity} occupied
+                            {occupiedCount}/{room.maximum_capacity} {label.toLowerCase()} occupied
                         </p>
                     </div>
                 </div>
@@ -115,7 +116,7 @@ export function RoomRow({ room, searchQuery = "" }: RoomRowProps) {
                                 />
                             ))}
                             {displayedTenants.length === 0 && !isSearching && (
-                                <div className="p-4 text-center text-sm text-gray-500">No tenants assigned to this room.</div>
+                                <div className="p-4 text-center text-sm text-gray-500">No tenants assigned to this {label.toLowerCase()}.</div>
                             )}
                         </>
                     )}

@@ -8,6 +8,7 @@ import { X, ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { Button } from "../ui/button";
 import { cn } from "../../lib/utils";
 import { savePropertyFilter } from "../../api/axios";
+import type { PropertyType } from "../../types";
 
 
 // ─── Date helpers ────────────────────────────────────────────────────────────
@@ -335,6 +336,12 @@ function DateFilterBar({ initialState, onFilterChange }: DateFilterBarProps) {
     );
 }
 
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+function getRoomLabel(type?: PropertyType) {
+    return type === 'House' ? 'Unit' : 'Room';
+}
+
 // ─── HierarchyGrid ────────────────────────────────────────────────────────────
 
 export function HierarchyGrid() {
@@ -342,6 +349,9 @@ export function HierarchyGrid() {
     const { rooms, loading: loadingRooms } = useRooms(selectedPropertyId || "");
     const { properties } = useProperties();
     const [searchQuery, setSearchQuery] = useState("");
+
+    const selectedProperty = properties.find(p => p.id === selectedPropertyId);
+    const roomLabel = getRoomLabel(selectedProperty?.type);
 
     // Parse the saved filter state for the currently-selected property
     const savedFilterState = useMemo<FilterSaveState | undefined>(() => {
@@ -375,7 +385,7 @@ export function HierarchyGrid() {
                         initialState={savedFilterState}
                         onFilterChange={handleFilterChange}
                     />
-                    <AddRoomDialog />
+                    <AddRoomDialog label={roomLabel} />
                 </div>
 
                 {/* Row 2 — Student search */}
@@ -420,7 +430,7 @@ export function HierarchyGrid() {
                 {rooms.length > 0 ? (
                     <>
                         {rooms.map(room => (
-                            <RoomRow key={room.id} room={room} searchQuery={searchQuery} />
+                            <RoomRow key={room.id} room={room} searchQuery={searchQuery} label={roomLabel} />
                         ))}
                         {/* Shown only when search yields no results across all rooms */}
                         {searchQuery.trim() && (
@@ -439,8 +449,8 @@ export function HierarchyGrid() {
                 ) : (
                     <div className="p-8 text-center text-stripe-text-secondary">
                         {selectedPropertyId
-                            ? "No rooms found for this property."
-                            : "Select a property to view rooms."}
+                            ? `No ${roomLabel.toLowerCase()}s found for this property.`
+                            : `Select a property to view ${roomLabel.toLowerCase()}s.`}
                     </div>
                 )}
             </div>

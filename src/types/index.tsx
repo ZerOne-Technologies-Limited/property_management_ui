@@ -1,4 +1,4 @@
-export type PropertyType = 'BoardingHouse' | 'Lodge' | 'Hotel' | 'Hostel';
+export type PropertyType = 'BoardingHouse' | 'Lodge' | 'Hotel' | 'Hostel' | 'House';
 export type UserRole = 'SuperAdmin' | 'Manager';
 
 export interface Property {

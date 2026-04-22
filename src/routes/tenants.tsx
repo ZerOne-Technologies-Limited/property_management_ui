@@ -5,6 +5,7 @@ import { useAppStore } from '../lib/store'
 import { useTenants } from '../hooks/useTenants'
 import { useRooms } from '../hooks/useRooms'
 import { useTransactions } from '../hooks/useTransactions'
+import { useProperties } from '../hooks/useProperties'
 import { AddPaymentDialog } from '../components/dashboard/AddPaymentDialog'
 import { DrawerManager } from '../components/layout/DrawerManager'
 import { cn } from '../lib/utils'
@@ -38,6 +39,7 @@ interface TenantListRowProps {
   tenant: Tenant
   roomName: string
   searchQuery: string
+  roomLabel: string
 }
 
 function HighlightMatch({ text, query }: { text: string; query: string }) {
@@ -55,7 +57,7 @@ function HighlightMatch({ text, query }: { text: string; query: string }) {
   )
 }
 
-function TenantListRow({ tenant, roomName, searchQuery }: TenantListRowProps) {
+function TenantListRow({ tenant, roomName, searchQuery, roomLabel }: TenantListRowProps) {
   const { openDrawer } = useAppStore()
   const dateFilter = useAppStore(state => state.dateFilter)
 
@@ -192,7 +194,7 @@ function TenantListRow({ tenant, roomName, searchQuery }: TenantListRowProps) {
                     ) : (
                       <LogOut className="size-3" />
                     )}
-                    Remove from room
+                    Remove from {roomLabel.toLowerCase()}
                   </button>
                 </>
               )}
@@ -212,6 +214,9 @@ function TenantsPage() {
 
   const { tenants, loading } = useTenants(selectedPropertyId || undefined)
   const { rooms } = useRooms(selectedPropertyId || '')
+  const { properties } = useProperties()
+
+  const roomLabel = (properties.find(p => p.id === selectedPropertyId)?.type === 'House') ? 'Unit' : 'Room'
 
   const roomMap = useMemo(
     () => Object.fromEntries(rooms.map(r => [r.id, r.name])),
@@ -280,7 +285,7 @@ function TenantsPage() {
           {/* Column headers */}
           <div className="flex items-center gap-3 border-t border-stripe-border bg-stripe-sidebar px-4 py-2 text-xs font-semibold uppercase tracking-wider text-stripe-text-secondary sm:px-6">
             <div className="flex-1">Name</div>
-            <div className="hidden w-28 shrink-0 sm:block">Room</div>
+            <div className="hidden w-28 shrink-0 sm:block">{roomLabel}</div>
             <div className="w-24 shrink-0 text-right">Total</div>
             <div className="w-24 shrink-0 text-right">Actions</div>
           </div>
@@ -319,6 +324,7 @@ function TenantsPage() {
                   tenant={tenant}
                   roomName={roomMap[tenant.room_id ?? ''] ?? ''}
                   searchQuery={searchQuery}
+                  roomLabel={roomLabel}
                 />
               ))}
 
@@ -339,6 +345,7 @@ function TenantsPage() {
                       tenant={tenant}
                       roomName=""
                       searchQuery={searchQuery}
+                      roomLabel={roomLabel}
                     />
                   ))}
                 </>
