@@ -57,21 +57,27 @@ export function RoomRow({ room, searchQuery = "", label = "Room" }: RoomRowProps
                     <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0 text-gray-400">
                         {isExpanded ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
                     </Button>
-                    <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                            <h4 className="truncate text-sm font-bold text-gray-900">{room.name}</h4>
-                            {/* Match count badge while searching */}
-                            {isSearching && !loading && (
-                                <span className="shrink-0 rounded-full bg-stripe-purple px-1.5 py-0.5 text-[10px] font-semibold text-white leading-none">
-                                    {displayedTenants.length}
-                                </span>
+                        <div className="min-w-0">
+                            <div className="flex items-center gap-2">
+                                <h4 className="truncate text-sm font-bold text-gray-900">{room.name}</h4>
+                                {/* Match count badge while searching */}
+                                {isSearching && !loading && (
+                                    <span className="shrink-0 rounded-full bg-stripe-purple px-1.5 py-0.5 text-[10px] font-semibold text-white leading-none">
+                                        {displayedTenants.length}
+                                    </span>
+                                )}
+                            </div>
+                            {/* Notes — truncated, desktop only */}
+                            {room.notes && (
+                                <p className="hidden sm:block truncate max-w-[200px] text-[10px] text-gray-400 leading-tight" title={room.notes}>
+                                    {room.notes}
+                                </p>
                             )}
+                            {/* Occupancy shown inline on mobile */}
+                            <p className="text-[10px] text-gray-400 sm:hidden">
+                                {occupiedCount}/{room.maximum_capacity} {label.toLowerCase()} occupied
+                            </p>
                         </div>
-                        {/* Occupancy shown inline on mobile */}
-                        <p className="text-[10px] text-gray-400 sm:hidden">
-                            {occupiedCount}/{room.maximum_capacity} {label.toLowerCase()} occupied
-                        </p>
-                    </div>
                 </div>
 
                 {/* Capacity — desktop only */}

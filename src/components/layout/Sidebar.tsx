@@ -15,6 +15,7 @@ const navItems: NavItem[] = [
   { label: "Home", path: "/", icon: Home },
   { label: "Tenants", path: "/tenants", icon: Users },
   { label: "Transactions", path: "/transactions", icon: Receipt },
+  { label: "Properties", path: "/properties", icon: Building2 },
   { label: "Users", path: "/property-users", icon: UserCog },
 ];
 

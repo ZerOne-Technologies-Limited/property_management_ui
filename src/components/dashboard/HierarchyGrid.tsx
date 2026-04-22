@@ -396,7 +396,7 @@ export function HierarchyGrid() {
                             type="text"
                             value={searchQuery}
                             onChange={e => setSearchQuery(e.target.value)}
-                            placeholder="Search student by name…"
+                            placeholder="Search tenant by name…"
                             className="h-8 w-full rounded-md border border-stripe-border bg-white pl-8 pr-8 text-sm text-stripe-text-primary placeholder:text-stripe-text-secondary focus:outline-none focus:ring-2 focus:ring-stripe-purple/40 focus:border-stripe-purple/50"
                         />
                         {searchQuery && (

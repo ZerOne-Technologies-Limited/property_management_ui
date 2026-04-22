@@ -63,6 +63,8 @@ export const fetchProperties = async (): Promise<Property[]> => {
     created_at: p.CreatedAt || p.created_at || new Date().toISOString(),
     created_by: p.CreatedBy || p.created_by || 'system',
     dashboard_filter_state: p.FilterState || p.filter_state || p.DashboardFilterState || null,
+    room_count: p.RoomCount ?? p.room_count ?? 0,
+    tenant_count: p.TenantCount ?? p.tenant_count ?? 0,
   }));
 }
 
@@ -234,6 +236,14 @@ export const fetchTenantById = async (tenantId: number): Promise<Tenant | null> 
     created_at: raw.CreatedAt || new Date().toISOString()
   };
 }
+
+export const updateProperty = async (id: string, name: string, type: import('./types').PropertyType): Promise<void> => {
+  await api.patch(`/property/${id}`, { PropertyId: Number(id), PropertyName: name, PropertyType: type });
+};
+
+export const deleteProperty = async (id: string): Promise<void> => {
+  await api.delete(`/property/${id}`);
+};
 
 export const savePropertyFilter = async (propertyId: string, filterState: string | null): Promise<void> => {
   await api.patch(`/property/${propertyId}/filter`, { FilterState: filterState });

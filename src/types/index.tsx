@@ -8,6 +8,8 @@ export interface Property {
   created_at: string;
   created_by: string;
   dashboard_filter_state?: string | null;
+  room_count?: number;
+  tenant_count?: number;
 }
 
 export interface CreatePropertyPayload {
