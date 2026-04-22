@@ -24,11 +24,13 @@ interface UIState {
         dataOrId: any;
     };
     dateFilter: { from: string | null; to: string | null };
+    hasSeenTour: boolean;
     setSelectedPropertyId: (id: string) => void;
     toggleSidebar: () => void;
     openDrawer: (type: 'ROOM' | 'TENANT' | 'PAYMENT' | 'PAYMENT_HISTORY', dataOrId: any) => void;
     closeDrawer: () => void;
     setDateFilter: (from: string | null, to: string | null) => void;
+    setHasSeenTour: (v: boolean) => void;
 }
 
 interface DataState {
@@ -72,11 +74,13 @@ export const useAppStore = create<AppState>()(
             isSidebarOpen: true,
             activeDrawer: { type: 'NONE', dataOrId: null },
             dateFilter: { from: null, to: null },
+            hasSeenTour: false,
             setSelectedPropertyId: (id) => set({ selectedPropertyId: id }),
             toggleSidebar: () => set((state) => ({ isSidebarOpen: !state.isSidebarOpen })),
             openDrawer: (type, dataOrId) => set({ activeDrawer: { type, dataOrId } }),
             closeDrawer: () => set({ activeDrawer: { type: 'NONE', dataOrId: null } }),
             setDateFilter: (from, to) => set({ dateFilter: { from, to } }),
+            setHasSeenTour: (v) => set({ hasSeenTour: v }),
 
             // Data
             rooms: {},
@@ -93,7 +97,8 @@ export const useAppStore = create<AppState>()(
             partialize: (state) => ({
                 token: state.token,
                 isAuthenticated: state.isAuthenticated,
-                selectedPropertyId: state.selectedPropertyId
+                selectedPropertyId: state.selectedPropertyId,
+                hasSeenTour: state.hasSeenTour,
             }),
         }
     )

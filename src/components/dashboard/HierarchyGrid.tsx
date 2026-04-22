@@ -385,7 +385,9 @@ export function HierarchyGrid() {
                         initialState={savedFilterState}
                         onFilterChange={handleFilterChange}
                     />
-                    <AddRoomDialog label={roomLabel} />
+                    <span data-tour="add-room-btn">
+                        <AddRoomDialog label={roomLabel} />
+                    </span>
                 </div>
 
                 {/* Row 2 — Student search */}

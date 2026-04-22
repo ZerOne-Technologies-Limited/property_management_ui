@@ -2,6 +2,7 @@ import { Outlet, createRootRouteWithContext, useLocation } from '@tanstack/react
 import { Sidebar } from '../components/layout/Sidebar'
 import { TopBar } from '../components/layout/TopBar'
 import { useAppStore } from '../lib/store'
+import { OnboardingTour } from '../components/layout/OnboardingTour'
 
 export type userRole = 'manager' | 'client' | "";
 
@@ -55,6 +56,8 @@ function RootComponent() {
           <Outlet />
         </main>
       </div>
+
+      <OnboardingTour />
     </div>
   )
 }

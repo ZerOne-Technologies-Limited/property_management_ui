@@ -9,14 +9,15 @@ interface NavItem {
   label: string;
   path: string;
   icon: React.ComponentType<{ className?: string }>;
+  tour?: string;
 }
 
 const navItems: NavItem[] = [
-  { label: "Home", path: "/", icon: Home },
-  { label: "Tenants", path: "/tenants", icon: Users },
-  { label: "Transactions", path: "/transactions", icon: Receipt },
-  { label: "Properties", path: "/properties", icon: Building2 },
-  { label: "Users", path: "/property-users", icon: UserCog },
+  { label: "Home",         path: "/",               icon: Home,     tour: "nav-home" },
+  { label: "Tenants",      path: "/tenants",         icon: Users,    tour: "nav-tenants" },
+  { label: "Transactions", path: "/transactions",    icon: Receipt,  tour: "nav-transactions" },
+  { label: "Properties",   path: "/properties",      icon: Building2 },
+  { label: "Users",        path: "/property-users",  icon: UserCog },
 ];
 
 // ─── PropertyCombobox ─────────────────────────────────────────────────────────
@@ -78,6 +79,7 @@ function PropertyCombobox({ properties, loading, value, onChange }: PropertyComb
       {/* Trigger */}
       <button
         type="button"
+        data-tour="property-selector"
         disabled={loading}
         onClick={() => setOpen(v => !v)}
         className={cn(
@@ -223,6 +225,7 @@ export function Sidebar({ isOpen = true, onClose }: SidebarProps) {
               key={item.path}
               to={item.path}
               onClick={onClose}
+              {...(item.tour ? { "data-tour": item.tour } : {})}
               className={cn(
                 "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors",
                 active
