@@ -1,6 +1,6 @@
 import axios from "axios";
 import type { loginModel, LoginResponse } from "../types/auth";
-import type { CreatePropertyPayload, CreateRoomPayload, UpdateRoomPayload, RegisterTenantPayload, UpdateTenantPayload, CreateTransactionPayload, Property, Room, Tenant, Transaction, TransactionFilters } from "../types";
+import type { CreatePropertyPayload, CreateRoomPayload, UpdateRoomPayload, RegisterTenantPayload, UpdateTenantPayload, CreateTransactionPayload, Property, PropertyType, Room, Tenant, Transaction, TransactionFilters } from "../types";
 
 import { useAppStore } from "../lib/store";
 
@@ -237,7 +237,7 @@ export const fetchTenantById = async (tenantId: number): Promise<Tenant | null> 
   };
 }
 
-export const updateProperty = async (id: string, name: string, type: import('./types').PropertyType): Promise<void> => {
+export const updateProperty = async (id: string, name: string, type: PropertyType): Promise<void> => {
   await api.patch(`/property/${id}`, { PropertyId: Number(id), PropertyName: name, PropertyType: type });
 };
 

@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
 import {
-  Building2, Edit2, Trash2, X, Check, Loader2, Plus, Home,
+  Building2, Edit2, Trash2, X, Check, Loader2, Home,
   Hotel, BedDouble, House,
 } from 'lucide-react'
 import { useProperties } from '../hooks/useProperties'
