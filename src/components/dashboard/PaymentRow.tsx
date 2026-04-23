@@ -3,6 +3,7 @@ import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { FileText, RotateCcw } from "lucide-react";
 import { useAppStore } from "../../lib/store";
+import { useFormatMoney } from "../../lib/format-money";
 
 interface PaymentRowProps {
     payment: Transaction;
@@ -10,12 +11,13 @@ interface PaymentRowProps {
 
 export function PaymentRow({ payment }: PaymentRowProps) {
     const { openDrawer } = useAppStore();
+    const fmt = useFormatMoney();
 
     return (
         <div className="flex items-center justify-between border-t border-gray-100 bg-gray-50/50 py-3 pl-20 pr-4 text-sm hover:bg-gray-100">
             <div className="grid flex-1 grid-cols-12 gap-4">
                 <div className="col-span-2 text-gray-500">{new Date(payment.created_at).toLocaleDateString()}</div>
-                <div className="col-span-2 font-medium text-gray-900">${payment.amount}</div>
+                <div className="col-span-2 font-medium text-gray-900">{fmt(payment.amount)}</div>
                 <div className="col-span-2">
                     <Badge variant="outline" className="bg-white text-gray-600 border-gray-200">
                         Cash

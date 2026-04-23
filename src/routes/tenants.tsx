@@ -9,6 +9,7 @@ import { useProperties } from '../hooks/useProperties'
 import { AddPaymentDialog } from '../components/dashboard/AddPaymentDialog'
 import { DrawerManager } from '../components/layout/DrawerManager'
 import { cn } from '../lib/utils'
+import { useFormatMoney } from '../lib/format-money'
 import type { Tenant } from '../types'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { unassignTenantFromRoom } from '../api/axios'
@@ -60,6 +61,7 @@ function HighlightMatch({ text, query }: { text: string; query: string }) {
 function TenantListRow({ tenant, roomName, searchQuery, roomLabel }: TenantListRowProps) {
   const { openDrawer } = useAppStore()
   const dateFilter = useAppStore(state => state.dateFilter)
+  const fmt = useFormatMoney()
 
   const { transactions, loading: loadingTx } = useTransactions({
     PropertyId: Number(tenant.property_id),
@@ -133,7 +135,7 @@ function TenantListRow({ tenant, roomName, searchQuery, roomLabel }: TenantListR
           <span className="text-xs text-gray-300">…</span>
         ) : (
           <span className={cn('font-mono text-sm font-semibold tabular-nums', total > 0 ? 'text-emerald-700' : 'text-gray-400')}>
-            {total > 0 ? `K${total.toLocaleString()}` : '—'}
+            {total > 0 ? fmt(total) : '—'}
           </span>
         )}
       </div>

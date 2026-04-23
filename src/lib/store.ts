@@ -41,7 +41,14 @@ interface DataState {
     setTenants: (propertyId: string, tenants: Tenant[]) => void;
 }
 
-interface AppState extends AuthState, UIState, DataState { }
+interface PreferencesState {
+    currencyCode: string;
+    numberLocale: string;
+    setCurrencyCode: (code: string) => void;
+    setNumberLocale: (locale: string) => void;
+}
+
+interface AppState extends AuthState, UIState, DataState, PreferencesState { }
 
 export const useAppStore = create<AppState>()(
     persist(
@@ -82,6 +89,12 @@ export const useAppStore = create<AppState>()(
             setDateFilter: (from, to) => set({ dateFilter: { from, to } }),
             setHasSeenTour: (v) => set({ hasSeenTour: v }),
 
+            // Preferences (regional / display)
+            currencyCode: 'ZMW',
+            numberLocale: 'en-ZM',
+            setCurrencyCode: (code) => set({ currencyCode: code }),
+            setNumberLocale: (locale) => set({ numberLocale: locale }),
+
             // Data
             rooms: {},
             tenants: {},
@@ -99,6 +112,8 @@ export const useAppStore = create<AppState>()(
                 isAuthenticated: state.isAuthenticated,
                 selectedPropertyId: state.selectedPropertyId,
                 hasSeenTour: state.hasSeenTour,
+                currencyCode: state.currencyCode,
+                numberLocale: state.numberLocale,
             }),
         }
     )

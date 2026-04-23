@@ -10,6 +10,8 @@ import { useRooms } from '../hooks/useRooms'
 import { useTenants } from '../hooks/useTenants'
 import { Button } from '../components/ui/button'
 import { cn } from '../lib/utils'
+import { useFormatMoney } from '../lib/format-money'
+import { useAppStore } from '../lib/store'
 import type { Transaction, TransactionFilters } from '../types'
 
 export const Route = createFileRoute('/transactions')({
@@ -30,13 +32,16 @@ function fmtTime(iso: string) {
   return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 }
 
-function fmtK(n: number) {
-  return `K${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-}
-
 // ─── Receipt printer ─────────────────────────────────────────────────────────
 
-function printReceipt(tx: Transaction, tenant: string, room: string, property: string, roomLabel = 'Room') {
+function printReceipt(
+  tx: Transaction,
+  tenant: string,
+  room: string,
+  property: string,
+  formatAmount: (n: number) => string,
+  roomLabel = 'Room',
+) {
   const w = window.open('', '_blank', 'width=480,height=700')
   if (!w) return
   w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8">
@@ -68,7 +73,7 @@ function printReceipt(tx: Transaction, tenant: string, room: string, property: s
 <div class="row"><span class="lbl">${roomLabel}</span><span class="val">${room}</span></div>
 ${tx.notes ? `<div class="row"><span class="lbl">Notes</span><span class="val">${tx.notes}</span></div>` : ''}
 <hr/>
-<div class="row amount-row"><span class="lbl">Amount Paid</span><span class="val">${fmtK(tx.amount)}</span></div>
+<div class="row amount-row"><span class="lbl">Amount Paid</span><span class="val">${formatAmount(tx.amount)}</span></div>
 <div class="footer">Thank you for your payment · property.zapps</div>
 <br/><div style="text-align:center">
   <button class="print-btn" onclick="window.print();window.close()" style="padding:8px 20px;background:#7c3aed;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px">
@@ -88,6 +93,7 @@ function printAllReceipts(
   roomMap: Record<string,string>,
   propertyMap: Record<string,string>,
   filterLabel: string,
+  formatAmount: (n: number) => string,
   roomLabel = 'Room',
 ) {
   const rows = transactions.map(tx => `
@@ -98,7 +104,7 @@ function printAllReceipts(
       <td>${propertyMap[tx.property_id] ?? tx.property_id}</td>
       <td>${roomMap[tx.room_id] ?? tx.room_id}</td>
       <td>${tx.notes || '—'}</td>
-      <td class="amount">${fmtK(tx.amount)}</td>
+      <td class="amount">${formatAmount(tx.amount)}</td>
     </tr>`).join('')
 
   const total = transactions.reduce((s, t) => s + t.amount, 0)
@@ -132,7 +138,7 @@ function printAllReceipts(
   <tbody>${rows}
     <tr class="total-row">
       <td colspan="6" style="text-align:right">Total</td>
-      <td class="amount">${fmtK(total)}</td>
+      <td class="amount">${formatAmount(total)}</td>
     </tr>
   </tbody>
 </table>
@@ -221,6 +227,8 @@ const emptyForm = {
 }
 
 function TransactionsPage() {
+  const fmt = useFormatMoney()
+  const currencyCode = useAppStore((s) => s.currencyCode)
   const [form, setForm] = useState(emptyForm)
   const [debouncedFilters, setDebouncedFilters] = useState<TransactionFilters>({})
   const [tenantSearch, setTenantSearch] = useState('')
@@ -351,7 +359,7 @@ function TransactionsPage() {
             <h1 className="text-lg font-bold text-stripe-text-primary sm:text-xl">Transactions</h1>
             {!loading && hasFilters && transactions.length > 0 && (
               <p className="text-xs text-stripe-text-secondary">
-                {transactions.length} record{transactions.length !== 1 ? 's' : ''} · {fmtK(total)}
+                {transactions.length} record{transactions.length !== 1 ? 's' : ''} · {fmt(total)}
               </p>
             )}
           </div>
@@ -371,7 +379,7 @@ function TransactionsPage() {
                   variant="outline"
                   size="sm"
                   className="gap-1.5 text-xs h-8"
-                  onClick={() => printAllReceipts(transactions, tenantMap, roomMap, propertyMap, filterLabel, roomLabel)}
+                  onClick={() => printAllReceipts(transactions, tenantMap, roomMap, propertyMap, filterLabel, fmt, roomLabel)}
                 >
                   <Printer className="size-3.5" />
                   <span className="hidden sm:inline">Print All</span>
@@ -502,7 +510,7 @@ function TransactionsPage() {
 
               {/* Min amount */}
               <div className="space-y-1">
-                <label className="text-xs font-medium text-stripe-text-secondary">Min Amount (K)</label>
+                <label className="text-xs font-medium text-stripe-text-secondary">Min amount ({currencyCode})</label>
                 <input type="number" min="0" step="0.01" placeholder="0.00"
                   value={form.minAmount}
                   onChange={e => setForm(p => ({ ...p, minAmount: e.target.value }))}
@@ -511,7 +519,7 @@ function TransactionsPage() {
 
               {/* Max amount */}
               <div className="space-y-1">
-                <label className="text-xs font-medium text-stripe-text-secondary">Max Amount (K)</label>
+                <label className="text-xs font-medium text-stripe-text-secondary">Max amount ({currencyCode})</label>
                 <input type="number" min="0" step="0.01" placeholder="0.00"
                   value={form.maxAmount}
                   onChange={e => setForm(p => ({ ...p, maxAmount: e.target.value }))}
@@ -540,9 +548,9 @@ function TransactionsPage() {
         {hasFilters && !loading && transactions.length > 0 && (
           <div className="grid grid-cols-3 divide-x divide-stripe-border border-b border-stripe-border bg-white">
             {[
-              { label: 'Total Collected', value: fmtK(total), accent: true },
+              { label: 'Total Collected', value: fmt(total), accent: true },
               { label: 'Transactions', value: String(transactions.length) },
-              { label: 'Average Payment', value: fmtK(avg) },
+              { label: 'Average Payment', value: fmt(avg) },
             ].map(stat => (
               <div key={stat.label} className="px-4 py-3 sm:px-6">
                 <p className="text-[11px] font-medium uppercase tracking-wider text-stripe-text-secondary">{stat.label}</p>
@@ -646,14 +654,14 @@ function TransactionsPage() {
                           'font-mono text-sm font-semibold tabular-nums',
                           isLarge ? 'text-emerald-600' : 'text-stripe-text-primary'
                         )}>
-                          {fmtK(tx.amount)}
+                          {fmt(tx.amount)}
                         </span>
                       </td>
 
                       {/* Print receipt */}
                       <td className="px-4 py-3 text-right">
                         <button
-                          onClick={() => printReceipt(tx, tenantName, roomName, propName, roomLabel)}
+                          onClick={() => printReceipt(tx, tenantName, roomName, propName, fmt, roomLabel)}
                           className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-stripe-text-secondary transition-colors hover:bg-stripe-purple/10 hover:text-stripe-purple"
                           title="Print receipt"
                         >
@@ -673,7 +681,7 @@ function TransactionsPage() {
                     Total ({transactions.length})
                   </td>
                   <td className="px-4 py-2.5 text-right font-mono text-sm font-bold text-emerald-700 tabular-nums">
-                    {fmtK(total)}
+                    {fmt(total)}
                   </td>
                   <td />
                 </tr>

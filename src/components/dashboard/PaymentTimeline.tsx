@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import type { Transaction } from "../../types";
 import { useAppStore } from "../../lib/store";
+import { useFormatMoney } from "../../lib/format-money";
 import { cn } from "../../lib/utils";
 
 interface PaymentTimelineProps {
@@ -14,6 +15,7 @@ const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov
 
 export function PaymentTimeline({ payments, tenantId: _tenantId, showTotal: _showTotal, maxItems = 2 }: PaymentTimelineProps) {
     const { openDrawer } = useAppStore();
+    const fmt = useFormatMoney();
 
     const sorted = useMemo(
         () => [...payments].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()),
@@ -36,7 +38,7 @@ export function PaymentTimeline({ payments, tenantId: _tenantId, showTotal: _sho
                         key={p.id}
                         type="button"
                         onClick={e => { e.stopPropagation(); openDrawer("PAYMENT", p); }}
-                        title={`${mon} · K${p.amount.toLocaleString()}`}
+                        title={`${mon} · ${fmt(p.amount)}`}
                         className={cn(
                             "inline-flex h-7 items-center rounded-md border border-gray-200 bg-gray-50 px-2.5",
                             "transition-colors hover:border-stripe-purple/40 hover:bg-stripe-purple-light",
@@ -45,7 +47,7 @@ export function PaymentTimeline({ payments, tenantId: _tenantId, showTotal: _sho
                     >
                         <span className="text-[9px] font-semibold uppercase tracking-wide text-gray-400">{mon}</span>
                         <span className="mx-1 text-gray-200">·</span>
-                        <span className="font-mono text-xs font-semibold text-gray-700">{p.amount.toLocaleString()}</span>
+                        <span className="font-mono text-xs font-semibold text-gray-700">{fmt(p.amount)}</span>
                     </button>
                 );
             })}

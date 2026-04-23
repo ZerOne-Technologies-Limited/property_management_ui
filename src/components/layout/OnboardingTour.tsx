@@ -48,7 +48,7 @@ const STEPS: TourStep[] = [
   {
     title: "You're all set!",
     message:
-      "Explore the app at your own pace. You can restart this tour from your profile page anytime.",
+      "Explore the app at your own pace. You can restart this tour from Settings anytime.",
   },
 ];
 

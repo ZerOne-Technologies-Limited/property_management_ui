@@ -9,6 +9,7 @@ import { useRooms } from "../../hooks/useRooms";
 import { useProperties } from "../../hooks/useProperties";
 import { useState, useMemo } from "react";
 import { cn } from "../../lib/utils";
+import { useFormatMoney } from "../../lib/format-money";
 
 // Placeholder drawer content components
 function RoomDrawerContent({ data }: { data: any }) {
@@ -278,10 +279,6 @@ function fmtDate(iso: string) {
 function fmtTime(iso: string) {
     return new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 }
-function fmtK(n: number) {
-    return `K${n.toLocaleString()}`;
-}
-
 function InfoRow({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string }) {
     return (
         <div className="flex items-center gap-3 border-b border-stripe-border py-2.5 last:border-0">
@@ -294,7 +291,13 @@ function InfoRow({ icon: Icon, label, value }: { icon: React.ElementType; label:
     );
 }
 
-function printSingleReceipt(tx: Transaction, tenant: string, room: string, property: string) {
+function printSingleReceipt(
+    tx: Transaction,
+    tenant: string,
+    room: string,
+    property: string,
+    formatAmount: (n: number) => string,
+) {
     const w = window.open("", "_blank", "width=480,height=680");
     if (!w) return;
     w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Receipt #${tx.id}</title>
@@ -314,7 +317,7 @@ hr{border:none;border-top:1px dashed #d1d5db;margin:14px 0}.row{display:flex;jus
 <div class="row"><span class="lbl">Property</span><span class="val">${property}</span></div>
 <div class="row"><span class="lbl">Room</span><span class="val">${room}</span></div>
 ${tx.notes ? `<div class="row"><span class="lbl">Notes</span><span class="val">${tx.notes}</span></div>` : ""}
-<hr/><div class="row amount-row"><span class="lbl">Amount Paid</span><span class="val">${fmtK(tx.amount)}</span></div>
+<hr/><div class="row amount-row"><span class="lbl">Amount Paid</span><span class="val">${formatAmount(tx.amount)}</span></div>
 <div class="footer">Thank you for your payment · property.zapps</div>
 <br/><div style="text-align:center"><button class="btn" onclick="window.print();window.close()" style="padding:8px 20px;background:#635BFF;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px">🖨 Print</button></div>
 </body></html>`);
@@ -329,6 +332,7 @@ function PaymentDrawerContent({ data }: { data: Transaction }) {
     const { properties } = useProperties();
     const { rooms }      = useRooms(data?.property_id || "");
     const { tenants }    = useTenants(data?.property_id, data?.room_id || undefined);
+    const fmt = useFormatMoney();
 
     if (!data) return null;
 
@@ -345,7 +349,7 @@ function PaymentDrawerContent({ data }: { data: Transaction }) {
             <div className="flex items-end justify-between border-b border-stripe-border bg-stripe-sidebar px-6 py-5">
                 <div>
                     <p className="text-[10px] font-semibold uppercase tracking-widest text-stripe-text-secondary">Amount Paid</p>
-                    <p className="mt-1 font-mono text-3xl font-bold text-emerald-700">{fmtK(data.amount)}</p>
+                    <p className="mt-1 font-mono text-3xl font-bold text-emerald-700">{fmt(data.amount)}</p>
                 </div>
                 <div className="text-right">
                     <p className="font-mono text-xs text-stripe-text-secondary">#{data.id}</p>
@@ -367,7 +371,7 @@ function PaymentDrawerContent({ data }: { data: Transaction }) {
             {/* Actions */}
             <div className="mt-2 border-t border-stripe-border px-6 py-4">
                 <button
-                    onClick={() => printSingleReceipt(data, tenant, room, property)}
+                    onClick={() => printSingleReceipt(data, tenant, room, property, fmt)}
                     className="flex w-full items-center justify-center gap-2 rounded-md border border-stripe-border bg-white py-2 text-sm font-medium text-stripe-text-primary hover:bg-stripe-sidebar transition-colors"
                 >
                     <Printer className="size-4" /> Print Receipt
@@ -380,15 +384,18 @@ function PaymentDrawerContent({ data }: { data: Transaction }) {
 // ─── Payment history drawer ───────────────────────────────────────────────────
 
 function PaymentHistoryDrawerContent({ data }: { data: { tenantId: string; payments: Transaction[] } }) {
-    if (!data?.payments) return null;
+    const fmt = useFormatMoney();
+    const { openDrawer } = useAppStore();
 
+    const payments = data?.payments ?? [];
     const sorted = useMemo(
-        () => [...data.payments].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()),
-        [data.payments]
+        () => [...payments].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()),
+        [payments]
     );
 
     const total = useMemo(() => sorted.reduce((s, p) => s + p.amount, 0), [sorted]);
-    const { openDrawer } = useAppStore();
+
+    if (!data) return null;
 
     function exportCSV() {
         const rows = sorted.map(p => [fmtDate(p.created_at), fmtTime(p.created_at), p.id, p.amount, `"${(p.notes ?? "").replace(/"/g, '""')}"`]);
@@ -405,7 +412,7 @@ function PaymentHistoryDrawerContent({ data }: { data: { tenantId: string; payme
             <div className="flex items-end justify-between border-b border-stripe-border bg-stripe-sidebar px-6 py-4">
                 <div>
                     <p className="text-[10px] font-semibold uppercase tracking-widest text-stripe-text-secondary">Total Collected</p>
-                    <p className="mt-1 font-mono text-2xl font-bold text-emerald-700">{fmtK(total)}</p>
+                    <p className="mt-1 font-mono text-2xl font-bold text-emerald-700">{fmt(total)}</p>
                 </div>
                 <span className="rounded-md border border-stripe-border bg-white px-2.5 py-1 font-mono text-xs font-semibold text-stripe-text-secondary">
                     {sorted.length} payment{sorted.length !== 1 ? "s" : ""}
@@ -444,7 +451,7 @@ function PaymentHistoryDrawerContent({ data }: { data: { tenantId: string; payme
                             "inline-flex h-7 items-center rounded-md border px-2.5 font-mono text-xs font-semibold tabular-nums",
                             "border-emerald-200 bg-emerald-50 text-emerald-700"
                         )}>
-                            {fmtK(p.amount)}
+                            {fmt(p.amount)}
                         </span>
                     </button>
                 ))}

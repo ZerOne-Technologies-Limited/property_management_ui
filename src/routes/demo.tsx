@@ -7,6 +7,8 @@ import {
   Crown, Shield, Eye, Trash2, ChevronUp,
 } from 'lucide-react'
 import { cn } from '../lib/utils'
+import { useFormatMoney } from '../lib/format-money'
+import { useAppStore } from '../lib/store'
 
 export const Route = createFileRoute('/demo')({
   component: DemoPage,
@@ -53,9 +55,7 @@ const USERS: { id: string; name: string; phone: string; role: PropertyUserRole; 
   { id: '3', name: 'Mulenga Sakala',  phone: '0971 000 003', role: 'Viewer',    isSelf: false },
 ]
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function fmtK(n: number) { return `K${n.toLocaleString()}` }
+// ─── Helpers ─────────────────────────────────────────────────────────────────-
 
 const AVATAR_COLORS = [
   'bg-blue-100 text-blue-700', 'bg-emerald-100 text-emerald-700',
@@ -166,6 +166,7 @@ function DemoSidebar({ isOpen, onClose, activePage, onNavigate }: {
 // ─── Home (HierarchyGrid replica) ─────────────────────────────────────────────
 
 function DemoTenantRow({ t }: { t: { id: string; firstName: string; lastName: string; phone: string; total: number; payments?: number[] } }) {
+  const fmt = useFormatMoney()
   return (
     <div className="group items-center border-t border-gray-100 transition-colors hover:bg-gray-50 grid grid-cols-[1fr_auto_auto] gap-2 px-3 py-2.5 sm:grid-cols-8 sm:gap-4 sm:px-4">
       <div className="flex items-center gap-2 min-w-0 pl-6 sm:col-span-3 sm:pl-8">
@@ -182,13 +183,13 @@ function DemoTenantRow({ t }: { t: { id: string; firstName: string; lastName: st
       </div>
       <div className="hidden sm:flex sm:col-span-2 items-center gap-1">
         {t.total > 0
-          ? <span className="rounded bg-emerald-50 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700">{fmtK(t.total)}</span>
+          ? <span className="rounded bg-emerald-50 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700">{fmt(t.total)}</span>
           : <span className="text-xs text-gray-300">No payments</span>
         }
       </div>
       <div className="sm:col-span-2">
         <span className={cn('font-mono text-sm font-semibold tabular-nums', t.total > 0 ? 'text-emerald-700' : 'text-gray-400')}>
-          {t.total > 0 ? fmtK(t.total) : '—'}
+          {t.total > 0 ? fmt(t.total) : '—'}
         </span>
       </div>
       <div className="flex justify-end items-center gap-1 sm:col-span-1">
@@ -297,6 +298,7 @@ function DemoHome() {
 // ─── Tenants page replica ──────────────────────────────────────────────────────
 
 function DemoTenants() {
+  const fmt = useFormatMoney()
   const [search, setSearch] = useState('')
 
   const filtered = useMemo(() => {
@@ -352,7 +354,7 @@ function DemoTenants() {
               </div>
               <div className="w-24 shrink-0 text-right">
                 <span className={cn('font-mono text-sm font-semibold tabular-nums', t.total > 0 ? 'text-emerald-700' : 'text-gray-400')}>
-                  {t.total > 0 ? fmtK(t.total) : '—'}
+                  {t.total > 0 ? fmt(t.total) : '—'}
                 </span>
               </div>
               <div className="flex shrink-0 items-center gap-1">
@@ -402,6 +404,8 @@ function DemoTenants() {
 // ─── Transactions page replica ─────────────────────────────────────────────────
 
 function DemoTransactions() {
+  const fmt = useFormatMoney()
+  const currencyCode = useAppStore((s) => s.currencyCode)
   const [filtersOpen, setFiltersOpen] = useState(true)
   const [search, setSearch]           = useState('')
   const [sortCol, setSortCol]         = useState<'date' | 'amount'>('date')
@@ -435,7 +439,7 @@ function DemoTransactions() {
         <div className="flex items-center justify-between gap-3">
           <div>
             <h1 className="text-lg font-bold text-stripe-text-primary sm:text-xl">Transactions</h1>
-            <p className="text-xs text-stripe-text-secondary">{filtered.length} records · {fmtK(total)}</p>
+            <p className="text-xs text-stripe-text-secondary">{filtered.length} records · {fmt(total)}</p>
           </div>
           <div className="flex items-center gap-2">
             <button className="flex h-8 items-center gap-1.5 rounded-md border border-stripe-border bg-white px-3 text-xs font-medium text-stripe-text-secondary hover:bg-gray-50">
@@ -486,11 +490,11 @@ function DemoTransactions() {
                 <button className="flex h-9 w-full items-center rounded-md border border-gray-200 bg-white px-3 text-sm text-gray-400 hover:bg-gray-50">30-Apr-2026</button>
               </div>
               <div className="space-y-1">
-                <label className="text-xs font-medium text-stripe-text-secondary">Min Amount (K)</label>
+                <label className="text-xs font-medium text-stripe-text-secondary">Min amount ({currencyCode})</label>
                 <input type="number" placeholder="0.00" className="h-9 w-full rounded-md border border-gray-200 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-stripe-purple/40" />
               </div>
               <div className="space-y-1">
-                <label className="text-xs font-medium text-stripe-text-secondary">Max Amount (K)</label>
+                <label className="text-xs font-medium text-stripe-text-secondary">Max amount ({currencyCode})</label>
                 <input type="number" placeholder="0.00" className="h-9 w-full rounded-md border border-gray-200 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-stripe-purple/40" />
               </div>
             </div>
@@ -500,9 +504,9 @@ function DemoTransactions() {
         {/* Summary strip */}
         <div className="grid grid-cols-3 divide-x divide-stripe-border border-b border-stripe-border bg-white">
           {[
-            { label: 'Total Collected', value: fmtK(total), accent: true },
+            { label: 'Total Collected', value: fmt(total), accent: true },
             { label: 'Transactions',    value: String(filtered.length) },
-            { label: 'Average Payment', value: fmtK(Math.round(avg)) },
+            { label: 'Average Payment', value: fmt(Math.round(avg)) },
           ].map(s => (
             <div key={s.label} className="px-4 py-3 sm:px-6">
               <p className="text-[11px] font-medium uppercase tracking-wider text-stripe-text-secondary">{s.label}</p>
@@ -551,7 +555,7 @@ function DemoTransactions() {
                   </td>
                   <td className="px-4 py-3 text-right">
                     <span className={cn('font-mono text-sm font-semibold tabular-nums', tx.amount >= maxAmt * 0.9 ? 'text-emerald-600' : 'text-stripe-text-primary')}>
-                      {fmtK(tx.amount)}
+                      {fmt(tx.amount)}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-right">
@@ -567,7 +571,7 @@ function DemoTransactions() {
                 <td colSpan={5} className="px-4 py-2.5 text-right text-xs font-semibold uppercase tracking-wider text-stripe-text-secondary">
                   Total ({filtered.length})
                 </td>
-                <td className="px-4 py-2.5 text-right font-mono text-sm font-bold text-emerald-700 tabular-nums">{fmtK(total)}</td>
+                <td className="px-4 py-2.5 text-right font-mono text-sm font-bold text-emerald-700 tabular-nums">{fmt(total)}</td>
                 <td />
               </tr>
             </tfoot>
